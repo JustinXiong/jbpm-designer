@@ -3914,7 +3914,6 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
             var dialog = new Ext.Window({
                 layout		: 'anchor',
                 autoCreate	: true,
-                title		: 'Expression Editor - Press [Ctrl-Z] to activate auto-completion',
                 height		: 430,
                 width		: 550,
                 modal		: true,

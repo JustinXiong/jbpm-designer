@@ -41,6 +41,16 @@ public class ExpressionEditorMessageJSONMarshaller {
 
         generator.writeStartObject();
 
+        generator.writeFieldName(ExpressionEditorMessageTokens.COMMAND_TOKEN);
+        if (message.getCommand() != null) {
+            generator.writeString(message.getCommand());
+        } else {
+            generator.writeNull();
+        }
+
+        generator.writeFieldName(ExpressionEditorMessageTokens.MESSAGE_TOKEN);
+        generator.writeStartObject();
+
         if (message.getExpression() == null) message.setExpression(new ConditionExpression());
 
         if (message.getExpression() != null) {
@@ -92,6 +102,7 @@ public class ExpressionEditorMessageJSONMarshaller {
             generator.writeNull();
         }
 
+        generator.writeEndObject();
         generator.writeEndObject();
 
         generator.close();

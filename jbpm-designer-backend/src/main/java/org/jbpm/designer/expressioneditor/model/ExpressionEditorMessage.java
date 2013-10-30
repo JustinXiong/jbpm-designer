@@ -18,6 +18,8 @@ package org.jbpm.designer.expressioneditor.model;
 
 public class ExpressionEditorMessage {
 
+    private String command;
+
     private String errorCode;
 
     private String errorMessage;
@@ -59,5 +61,13 @@ public class ExpressionEditorMessage {
 
     public void setScript(String script) {
         this.script = script;
+    }
+
+    public String getCommand() {
+        return command;
+    }
+
+    public void setCommand(String command) {
+        this.command = command;
     }
 }

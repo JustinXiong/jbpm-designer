@@ -1,16 +1,20 @@
 {
-    "operator" : "OR",
-    "conditions" : [
-        {
-            "function"    :  "isEquals",
-            "parameters" :  [ "variableName1", "param1.1" ]
-        },
-        {
-            "function"    :  "isBetween",
-            "parameters" :  [ "variableName2", "param2.1", "param2.2" ]
-        }
-    ],
-    "script" : "return true;",
-    "errorCode": "The error code",
-    "errorMessage": "The error message"
+    "command" : "generateScript",
+    "message" : {
+
+        "operator" : "OR",
+        "conditions" : [
+            {
+                "action"    :  "isEquals",
+                "parameters" :  [ "variableName1", "param1.1" ]
+            },
+            {
+                "action"    :  "isBetween",
+                "parameters" :  [ "variableName2", "param2.1", "param2.2" ]
+            }
+        ],
+        "script" : "return true;",
+        "errorCode": "The error code",
+        "errorMessage": "The error message"
+    }
 }

@@ -48,29 +48,30 @@ public class ExpressionEditorTestServlet extends HttpServlet {
 
             ExpressionEditorMessageJSONMarshaller marshaller = new ExpressionEditorMessageJSONMarshaller();
             ExpressionEditorMessageJSONUnmarshaller unmarshaller = new ExpressionEditorMessageJSONUnmarshaller();
+            ExpressionEditorMessage expressionEditorMessage = null;
 
             PrintWriter out = res.getWriter();
 
-            String command = req.getParameter("command");
-            String message = req.getParameter("message");
-            ExpressionEditorMessage expressionEditorMessage = null;
+            String command = req.getParameter("expressionEditorCommand");
 
-            if ("generateScript".equals(command)) {
-                expressionEditorMessage = unmarshaller.unmarshall(message);
-                expressionEditorMessage.setScript("return true; //generated at: "+new java.util.Date());
-            } else if ("parseScript".equals(command)) {
-                expressionEditorMessage = unmarshaller.unmarshall(message);
-                expressionEditorMessage.setScript("return true; //parsed at: "+new java.util.Date());
+            if (command != null) {
+                expressionEditorMessage = unmarshaller.unmarshall(command);
+
+                if ("generateScript".equals(expressionEditorMessage.getCommand())) {
+                    expressionEditorMessage.setScript("return true; //generated at: "+new java.util.Date());
+                } else if ("parseScript".equals(expressionEditorMessage.getCommand())) {
+                    expressionEditorMessage.setScript("return true; //parsed at: "+new java.util.Date());
+                }
+
+                if (expressionEditorMessage == null) {
+                    expressionEditorMessage = new ExpressionEditorMessage();
+                    expressionEditorMessage.setErrorMessage("invalid message");
+                }
+
+                String json  = marshaller.marshall(expressionEditorMessage);
+
+                out.write(json);
             }
-
-            if (expressionEditorMessage == null) {
-                expressionEditorMessage = new ExpressionEditorMessage();
-                expressionEditorMessage.setErrorMessage("invalid message");
-            }
-
-            String json  = marshaller.marshall(expressionEditorMessage);
-
-            out.write(json);
 
         } catch (Exception e) {
             e.printStackTrace();

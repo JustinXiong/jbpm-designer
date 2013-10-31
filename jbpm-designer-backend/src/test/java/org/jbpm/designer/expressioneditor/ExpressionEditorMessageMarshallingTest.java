@@ -47,7 +47,6 @@ public class ExpressionEditorMessageMarshallingTest {
 
         ExpressionEditorMessage message = new ExpressionEditorMessage();
 
-        message.setCommand("generateScript");
         ConditionExpression expression = new ConditionExpression("OR");
         message.setExpression(expression);
 
@@ -71,25 +70,20 @@ public class ExpressionEditorMessageMarshallingTest {
         message.setErrorCode("The error code");
         message.setErrorMessage("The error message");
 
-        String expectedResult =
+        String expectedResult = "{\"operator\":\"OR\"," +
+                "\"conditions\":[" +
                 "{" +
-                 "\"command\":\"generateScript\"," +
-                 "\"message\":" +
-                    "{\"operator\":\"OR\"," +
-                    "\"conditions\":[" +
-                    "{" +
-                    "\"action\":\"isEquals\"," +
-                    "\"parameters\":[\"variableName1\",\"param1.1\"]" +
-                    "}," +
-                    "{" +
-                    "\"action\":\"isBetween\"," +
-                    "\"parameters\":[\"variableName2\",\"param2.1\",\"param2.2\"]" +
-                    "}" +
-                    "]," +
-                    "\"script\":\"return true;\"," +
-                    "\"errorCode\":\"The error code\"," +
-                    "\"errorMessage\":\"The error message\"" +
-                    "}" +
+                "\"condition\":\"isEquals\"," +
+                "\"parameters\":[\"variableName1\",\"param1.1\"]" +
+                "}," +
+                "{" +
+                "\"condition\":\"isBetween\"," +
+                "\"parameters\":[\"variableName2\",\"param2.1\",\"param2.2\"]" +
+                "}" +
+                "]," +
+                "\"script\":\"return true;\"," +
+                "\"errorCode\":\"The error code\"," +
+                "\"errorMessage\":\"The error message\"" +
                 "}";
 
         String result = marshaller.marshall(message);

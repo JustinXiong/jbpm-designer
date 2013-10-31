@@ -39,10 +39,14 @@ public class ExpressionEditorProcessor {
 
     private static final String GENERATE_COMMAND = "generateScript";
 
+    private static final String MESSAGE_PARAM = "message";
+
+    private static final String COMMAND_PARAM = "command";
+
     public ExpressionEditorProcessor() {
     }
 
-    private void doProcess(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    public void doProcess(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         res.setContentType("application/json");
 
         try {
@@ -54,11 +58,11 @@ public class ExpressionEditorProcessor {
 
             PrintWriter out = res.getWriter();
 
-            String command = req.getParameter("command");
-            String message = req.getParameter("message");
+            String command = req.getParameter(COMMAND_PARAM);
+            String message = req.getParameter(MESSAGE_PARAM);
 
             if (logger.isDebugEnabled()) {
-                logger.debug("processing request for request parameters, command: " + command + ", message: " + message);
+                logger.debug("Processing request for parameters, command: " + command + ", message: " + message);
             }
 
             if (!isValidCommand(command)) {
@@ -70,10 +74,10 @@ public class ExpressionEditorProcessor {
             try {
                 requestMessage = unmarshaller.unmarshall(message);
             } catch (Exception e) {
-                logger.error("It was not possible to unmarshall message: " + message, e);
-                logger.error("Request will be discarded.");
+                logger.error("It was not possible to unmarshall json message, request will be discarded. message: " + message, e);
                 return;
             }
+
 
             if (GENERATE_COMMAND.equals(command)) {
                 responseMessage = doGenerateScript(requestMessage);
@@ -100,7 +104,10 @@ public class ExpressionEditorProcessor {
     }
 
     private ExpressionEditorMessage doParseScript(ExpressionEditorMessage requestMessage) {
-        return null;  //To change body of created methods use File | Settings | File Templates.
+
+        //TODO, not yet implemented
+        requestMessage.setScript("return true; //parsed at: "+new java.util.Date());
+        return requestMessage;
     }
 
     private ExpressionEditorMessage doGenerateScript(ExpressionEditorMessage requestMessage) {
@@ -146,7 +153,7 @@ public class ExpressionEditorProcessor {
 
     private int addConditionToScript(final Condition condition, final StringBuilder script, final String operator, final int validTerms, final List<String> errors) {
         if (condition == null) return 0;
-        if (isValidFunction(condition.getFunction())) {
+        if (!isValidFunction(condition.getFunction())) {
             errors.add("Invalid function : " + condition.getFunction());
             return 0;
         }

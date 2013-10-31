@@ -66,37 +66,11 @@ public class ExpressionEditorMessageJSONUnmarshaller {
 
     private ExpressionEditorMessage unmarshall(JsonParser parser) throws Exception {
         ExpressionEditorMessage message = new ExpressionEditorMessage();
-
-        try {
-            String currentField;
-
-            while (parser.nextToken() != JsonToken.END_OBJECT) {
-
-                currentField = parser.getCurrentName();
-
-                if (ExpressionEditorMessageTokens.COMMAND_TOKEN.equals(currentField)) {
-                    parser.nextToken();
-                    message.setCommand(parseText(parser));
-                } else if (ExpressionEditorMessageTokens.MESSAGE_TOKEN.equals(currentField)) {
-                    //after the message token a new object definition should start.
-                    if (parser.nextToken() == JsonToken.START_OBJECT) {
-                        unmarshallMessageContent(message, parser);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            logger.error("An error was produced during json message parsing. " + e);
-            throw e;
-        }
-        return message;
-    }
-
-    private void unmarshallMessageContent(ExpressionEditorMessage message, JsonParser parser) throws Exception {
-
         ConditionExpression expression = new ConditionExpression();
 
         try {
             String currentField;
+
             while (parser.nextToken() != JsonToken.END_OBJECT) {
 
                 currentField = parser.getCurrentName();
@@ -122,10 +96,11 @@ public class ExpressionEditorMessageJSONUnmarshaller {
                     message.setErrorMessage(parseText(parser));
                 }
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             logger.error("An error was produced during json message parsing. " + e);
             throw e;
         }
+        return message;
     }
 
     private String parseText(JsonParser parser) throws IOException, JsonParseException {
@@ -150,7 +125,7 @@ public class ExpressionEditorMessageJSONUnmarshaller {
         Condition condition = null;
         if (parser.getCurrentToken() == JsonToken.START_OBJECT && parser.nextToken() != JsonToken.END_OBJECT) {
             condition = new Condition();
-            if (ExpressionEditorMessageTokens.FUNCTION_TOKEN.equals(parser.getCurrentName())) {
+            if (ExpressionEditorMessageTokens.CONDITION_TOKEN.equals(parser.getCurrentName())) {
                 parser.nextToken();
                 condition.setFunction(parseText(parser));
             }

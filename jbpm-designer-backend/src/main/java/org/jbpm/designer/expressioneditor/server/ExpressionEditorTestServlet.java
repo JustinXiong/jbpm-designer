@@ -15,66 +15,25 @@
  */
 package org.jbpm.designer.expressioneditor.server;
 
-import org.jbpm.designer.expressioneditor.marshalling.ExpressionEditorMessageJSONMarshaller;
-import org.jbpm.designer.expressioneditor.marshalling.ExpressionEditorMessageJSONUnmarshaller;
-import org.jbpm.designer.expressioneditor.model.ExpressionEditorMessage;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.PrintWriter;
 
 public class ExpressionEditorTestServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
 
+    private ExpressionEditorProcessor processor = new ExpressionEditorProcessor();
+
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        doProcess(req, res);
+        processor.doProcess(req, res);
     }
 
     @Override
     public void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        doProcess(req, res);
-    }
-
-    private void doProcess(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        res.setContentType("application/json");
-        res.setStatus(200);
-
-        try {
-
-            ExpressionEditorMessageJSONMarshaller marshaller = new ExpressionEditorMessageJSONMarshaller();
-            ExpressionEditorMessageJSONUnmarshaller unmarshaller = new ExpressionEditorMessageJSONUnmarshaller();
-            ExpressionEditorMessage expressionEditorMessage = null;
-
-            PrintWriter out = res.getWriter();
-
-            String command = req.getParameter("expressionEditorCommand");
-
-            if (command != null) {
-                expressionEditorMessage = unmarshaller.unmarshall(command);
-
-                if ("generateScript".equals(expressionEditorMessage.getCommand())) {
-                    expressionEditorMessage.setScript("return true; //generated at: "+new java.util.Date());
-                } else if ("parseScript".equals(expressionEditorMessage.getCommand())) {
-                    expressionEditorMessage.setScript("return true; //parsed at: "+new java.util.Date());
-                }
-
-                if (expressionEditorMessage == null) {
-                    expressionEditorMessage = new ExpressionEditorMessage();
-                    expressionEditorMessage.setErrorMessage("invalid message");
-                }
-
-                String json  = marshaller.marshall(expressionEditorMessage);
-
-                out.write(json);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        processor.doProcess(req, res);
     }
 }

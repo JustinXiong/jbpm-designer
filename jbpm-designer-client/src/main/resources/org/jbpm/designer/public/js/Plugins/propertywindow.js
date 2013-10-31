@@ -3747,22 +3747,6 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
             integerPanelRange.hide();
             booleanPanel.hide();
 
-            function cleanCurrentInput () {
-                if (currentInputRecord != null) {
-                    var panel = currentInputRecord.get("panel");
-                    if (panel) {
-                        var currentInputs = currentInputRecord.get("inputs");
-                        if (currentInputs != null) {
-                            currentInputs.forEach(function(index){
-                                panel.getComponent(index).setValue(null);
-                            });
-                        }
-                        panel.hide();
-                    }
-                    currentInputRecord = null;
-                }
-            }
-
             var actionsCombo = new Ext.form.ComboBox({
                 id: 'VariableActionsCombobox',
                 editable: false,
@@ -3775,9 +3759,9 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                 listeners: {
                     'select': function(combo, record, index){
                         cleanCurrentInput();
-                        var panel = record.get("panel")
+                        currentInputRecord = record;
+                        var panel = currentInputRecord.get("panel")
                         if (panel != null) {
-                            currentInputRecord = record;
                             panel.show();
                         }
                     }
@@ -3830,6 +3814,7 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
             var complexEditor = new Ext.form.TextArea({
                 id: Ext.id(),
                 fieldLabel: "Expression Editor",
+                value: this.value.replace(/\\n/g,"\n"),
                 autoScroll: true
             });
 
@@ -3837,18 +3822,22 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                 items:[complexEditor]
             });
 
-            var radioEditor = true;
+            function checkRadio(option) {
+                if (option == "editor") {
+                    expressionEditorLayout.show();
+                    complexEditorLayout.hide();
+                } else {
+                    expressionEditorLayout.hide();
+                    complexEditorLayout.show();
+                }
+            }
 
-            var radioEditor = new Ext.form.Radio({fieldLabel: 'Expression editor', name: 'editor', inputValue: 'editor', checked: radioEditor,
+            var isEditor = true;
+
+            var radioEditor = new Ext.form.Radio({fieldLabel: 'Expression editor', name: 'editor', inputValue: 'editor', checked: isEditor,
                 listeners: {
                     'check': function(radio, checked) {
-                        if (checked) {
-                            expressionEditorLayout.show();
-                            complexEditorLayout.hide();
-                        } else {
-                            expressionEditorLayout.hide();
-                            complexEditorLayout.show();
-                        }
+                        if (checked) checkRadio("editor");
                     }
                 }
             });
@@ -3856,12 +3845,30 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
             var radioScript = new Ext.form.Radio({fieldLabel: 'Script editor', name: 'editor', inputValue: 'script', checked: !radioEditor,
                 listeners: {
                     'check': function(radio, checked) {
-                        if (!checked) {
-                            expressionEditorLayout.show();
-                            complexEditorLayout.hide();
-                        } else {
-                            expressionEditorLayout.hide();
-                            complexEditorLayout.show();
+                        if (checked) {
+                            var onsuccess = function(response) {
+                                if(response.responseText.length > 0) {
+                                    var responseJson = Ext.decode(response.responseText);
+                                    if (responseJson.errorCode) {
+                                        alert(responseJson.errorCode);
+                                    } else {
+                                        complexEditor.setValue(responseJson.script);
+                                        initSourceEditor();
+                                        checkRadio("script");
+                                        return;
+                                    }
+                                }
+                                checkRadio("editor");
+                            }
+
+                            var onfailure = function () {
+                                checkRadio("editor");
+                            }
+                            var result = generateScript(onsuccess, onfailure);
+                            if (result == false) {
+                                radioEditor.setValue(true);
+                                checkRadio("editor");
+                            }
                         }
                     }
                 }
@@ -3907,9 +3914,128 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                 items: [radios, expressionEditorLayout, complexEditorLayout]
             });
 
-
             var sourceEditor;
             var hlLine;
+
+            function cleanCurrentInput () {
+                if (currentInputRecord != null) {
+                    var panel = currentInputRecord.get("panel");
+                    if (panel) {
+                        var currentInputs = currentInputRecord.get("inputs");
+                        if (currentInputs != null) {
+                            currentInputs.forEach(function(index){
+                                panel.getComponent(index).setValue(null);
+                            });
+                        }
+                        panel.hide();
+                    }
+                    currentInputRecord = null;
+                }
+            }
+
+            function checkCurrentInputRecord() {
+                if (!currentInputRecord) return false;
+                var panel = currentInputRecord.get("panel");
+                if (panel == null) return true;
+                var currentInputs = currentInputRecord.get("inputs");
+                if (currentInputs != null) {
+                    var actionParams = [];
+                    currentInputs.forEach(function(index) {
+                        var value = panel.getComponent(index).getValue();
+                        if (value == null || value == "") return false;
+                        actionParams.push(value)
+                    });
+                    if (actionParams.length != currentInputs.length) return false;
+                    if (actionParams.length == 2) {
+                        return actionParams[1] > actionParams[0];
+                    }
+                }
+                return true;
+            }
+
+            function generateScriptParams() {
+                var varValue = varsCombo.getValue();
+
+                if (!varValue || !checkCurrentInputRecord()) {
+                    return null;
+                }
+
+                var actionParams = [];
+                actionParams.push(varValue);
+
+                var panel = currentInputRecord.get("panel");
+                if (panel != null) {
+                    var currentInputs = currentInputRecord.get("inputs");
+                    if (currentInputs != null) {
+                        currentInputs.forEach(function(index) {
+                            actionParams.push(panel.getComponent(index).getValue())
+                        });
+                    }
+                }
+                var param =  {
+                    operator: "AND",
+                    conditions: [{
+                        condition: actionsCombo.getValue(),
+                        parameters: actionParams
+                    }]
+                };
+
+                return param;
+            }
+
+            function generateScript(onsuccess, onfailure) {
+                var param = generateScriptParams();
+                if (!param) {
+                    alert("Please fill correctly the form params");
+                    return false;
+                }
+                Ext.Ajax.request({
+                    url: ORYX.PATH + 'expressioneditor',
+                    method: 'POST',
+                    params: {
+                        command: "generateScript",
+                        message: Ext.util.JSON.encode(param)
+                    },
+                    success: function(response) {
+                            try {
+                                onsuccess(response);
+                            } catch (err) {
+                                alert("Err success: " + err);
+                            }
+                    }.bind(this),
+                    failure: function() {
+                            try {
+                                onfailure();
+                            } catch (err) {
+                                alert("Err success: " + err);
+                            }
+                    }
+                });
+            }
+
+            var input = this;
+
+            var onsuccessSave = function(response) {
+                if(response.responseText.length > 0) {
+                    var responseJson = Ext.decode(response.responseText);
+                    if (responseJson.errorCode) {
+                        alert(responseJson.errorCode);
+                    } else {
+                        setFieldValueAndClose(responseJson.script)
+                    }
+                }
+            }
+
+            var onfailureSave = function() {
+                alert("Undefined Error")
+            }
+
+            function setFieldValueAndClose(value) {
+                input.setValue(value);
+                input.dataSource.getAt(input.row).set('value', value);
+                input.dataSource.commitChanges();
+                dialog.hide()
+            }
 
             var dialog = new Ext.Window({
                 layout		: 'anchor',
@@ -3938,9 +4064,12 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                 },
                 buttons		: [{
                     text: ORYX.I18N.PropertyWindow.ok,
-                    handler: function(){
-                        alert(close);
-                        dialog.hide()
+                    handler: function() {
+                        if (radioEditor.getValue()) {
+                            generateScript(onsuccessSave, onfailureSave);
+                        } else {
+                            setFieldValueAndClose(sourceEditor.getValue().replace(/\r\n|\r|\n/g,"\\n"))
+                        }
                     }.bind(this)
                 }, {
                     text: ORYX.I18N.PropertyWindow.cancel,
@@ -3951,20 +4080,23 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                 }]
             });
             dialog.show();
-            this.foldFunc = CodeMirror.newFoldFunction(CodeMirror.braceRangeFinder);
-            sourceEditor = CodeMirror.fromTextArea(document.getElementById(complexEditor.getId()), {
-                mode: "text/x-java",
-                lineNumbers: true,
-                lineWrapping: true,
-                matchBrackets: true,
-                onGutterClick: this.foldFunc,
-                extraKeys: {"Ctrl-Z": function(cm) {CodeMirror.hint(cm, CodeMirror.jbpmHint, dialog);}},
-                onCursorActivity: function() {
-                    sourceEditor.setLineClass(hlLine, null, null);
-                    hlLine = sourceEditor.setLineClass(sourceEditor.getCursor().line, null, "activeline");
-                }.bind(this)
-            });
-            hlLine = sourceEditor.setLineClass(0, "activeline");
+            function initSourceEditor() {
+                this.foldFunc = CodeMirror.newFoldFunction(CodeMirror.braceRangeFinder);
+                sourceEditor = CodeMirror.fromTextArea(document.getElementById(complexEditor.getId()), {
+                    mode: "text/x-java",
+                    lineNumbers: true,
+                    lineWrapping: true,
+                    matchBrackets: true,
+                    onGutterClick: this.foldFunc,
+                    extraKeys: {"Ctrl-Z": function(cm) {CodeMirror.hint(cm, CodeMirror.jbpmHint, dialog);}},
+                    onCursorActivity: function() {
+                        sourceEditor.setLineClass(hlLine, null, null);
+                        hlLine = sourceEditor.setLineClass(sourceEditor.getCursor().line, null, "activeline");
+                    }.bind(this)
+                });
+                hlLine = sourceEditor.setLineClass(0, "activeline");
+            }
+            initSourceEditor();
             this.grid.stopEditing();
         } catch (err) {
             alert(err);

@@ -20,6 +20,7 @@ import org.jbpm.designer.expressioneditor.marshalling.ExpressionEditorMessageJSO
 import org.jbpm.designer.expressioneditor.model.Condition;
 import org.jbpm.designer.expressioneditor.model.ConditionExpression;
 import org.jbpm.designer.expressioneditor.model.ExpressionEditorMessage;
+import org.jbpm.designer.expressioneditor.parser.ExpressionEditorParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -105,8 +107,26 @@ public class ExpressionEditorProcessor {
 
     private ExpressionEditorMessage doParseScript(ExpressionEditorMessage requestMessage) {
 
-        //TODO, not yet implemented
-        requestMessage.setScript("return true; //parsed at: "+new java.util.Date());
+        //TODO, partial implementation
+        //TODO add controls.
+
+        String script = requestMessage.getScript();
+        ConditionExpression conditionExpression = null;
+
+        if (logger.isDebugEnabled()) logger.debug("parsing script: " + script);
+
+        try {
+            ExpressionEditorParser parser = new ExpressionEditorParser(script);
+            conditionExpression = parser.parse();
+            requestMessage.setExpression(conditionExpression);
+            requestMessage.setErrorCode(null);
+            requestMessage.setErrorMessage(null);
+        } catch (ParseException e) {
+            logger.error("Script sent to server couldn't be parsed: " + script + " due to the following error: " + e.getMessage(), e);
+            requestMessage.setErrorMessage(e.getMessage());
+            requestMessage.setErrorCode(e.getMessage());
+            requestMessage.setExpression(new ConditionExpression());
+        }
         return requestMessage;
     }
 

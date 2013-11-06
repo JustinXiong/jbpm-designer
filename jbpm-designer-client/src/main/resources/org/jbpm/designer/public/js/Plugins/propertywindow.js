@@ -958,31 +958,13 @@ ORYX.Plugins.PropertyWindow = {
 							
 						case ORYX.CONFIG.TYPE_EXPRESSION:
 
-                            var isJavaCondition = false;
-
-                            Ext.each(this.dataSource.data.items, function(item){
-                                if (item.data.gridProperties.propId == "oryx-conditionexpressionlanguage" && item.data['value'] == "java") isJavaCondition = true;
+                            var cf = new Ext.form.ConditionExpressionEditorField({
+                                allowBlank: pair.optional(),
+                                dataSource:this.dataSource,
+                                grid:this.grid,
+                                row:index,
+                                facade:this.facade
                             });
-
-                            var cf;
-
-                            if (isJavaCondition) {
-                                cf = new Ext.form.ConditionExpressionEditorField({
-                                    allowBlank: pair.optional(),
-                                    dataSource:this.dataSource,
-                                    grid:this.grid,
-                                    row:index,
-                                    facade:this.facade
-                                });
-                            } else {
-                                cf = new Ext.form.ComplexExpressionField({
-                                    allowBlank: pair.optional(),
-                                    dataSource:this.dataSource,
-                                    grid:this.grid,
-                                    row:index,
-                                    facade:this.facade
-                                });
-                            }
 
 							cf.on('dialogClosed', this.dialogClosed, {scope:this, row:index, col:1,field:cf});							
 							editorGrid = new Ext.Editor(cf);
@@ -3645,178 +3627,24 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                 return;
             }
 
-            // definde the input panels for each action type
-            var currentInputRecord;
-
-            var stringPanel = new Ext.Panel({
-                layout:'column', border:false,
-                items:[new Ext.form.TextField({name: "stringValue"})]
-            });
-            var floatPanel = new Ext.Panel({
-                layout:'column', border:false,
-                items:[new Ext.form.NumberField({name: "floatValue", allowDecimals: true})]
-            });
-            var floatPanelRange = new Ext.Panel({
-                layout:'column', border:false,
-                items:[new Ext.form.NumberField({name: "floatFrom", allowDecimals: true}),
-                    {html: '&nbsp;-&nbsp;', border:false},
-                    new Ext.form.NumberField({name: "floatTo", allowDecimals: true})]
-            });
-            var integerPanel = new Ext.Panel({
-                layout:'column', border:false,
-                items:[new Ext.form.NumberField({name: "intValue", allowDecimals: false})]
-            });
-            var integerPanelRange = new Ext.Panel({
-                layout:'column', border:false,
-                items:[new Ext.form.NumberField({name: "intForm", allowDecimals: false}),
-                    {html: '&nbsp;-&nbsp;', border:false},
-                    new Ext.form.NumberField({name: "intTo", allowDecimals: false})]
-            });
-
-            var stringActions = [];
-            stringActions.push(["contains", stringPanel, [0]]);
-            stringActions.push(["endsWith", stringPanel, [0]]);
-            stringActions.push(["equalsTo", stringPanel, [0]]);
-            stringActions.push(["isEmpty", null, null]);
-            stringActions.push(["isNull", null, null]);
-            stringActions.push(["startsWith", stringPanel, [0]]);
-
-            var sActionStore = new Ext.data.SimpleStore({
-                fields: [{name: 'value'},{name: 'panel'}, {name: 'inputs'}],
-                data : stringActions
-            });
-
-            var floatActions = [];
-            floatActions.push(["between", floatPanelRange, [0, 2]]);
-            floatActions.push(["equalsTo", floatPanel, [0]]);
-            floatActions.push(["greaterThan", floatPanel, [0]]);
-            floatActions.push(["greaterOrEqualThan", floatPanel, [0]]);
-            floatActions.push(["isEmpty", null, null]);
-            floatActions.push(["isNull", null, null]);
-            floatActions.push(["lessThan", floatPanel, [0]]);
-            floatActions.push(["lessOrEqualThan", floatPanel, [0]]);
-
-            var fActionStore = new Ext.data.SimpleStore({
-                fields: [{name: 'value'},{name: 'panel'}, {name: 'inputs'}],
-                data : floatActions
-            });
-
-            var integerActions = [];
-            integerActions.push(["between", integerPanelRange, [0, 2]]);
-            integerActions.push(["equalsTo", integerPanel, [0]]);
-            integerActions.push(["greaterThan", integerPanel, [0]]);
-            integerActions.push(["greaterOrEqualThan", integerPanel, [0]]);
-            integerActions.push(["isEmpty", null, null]);
-            integerActions.push(["isNull", null, null]);
-            integerActions.push(["lessThan", integerPanel, [0]]);
-            integerActions.push(["lessOrEqualThan", integerPanel, [0]]);
-
-            var iActionStore = new Ext.data.SimpleStore({
-                fields: [{name: 'value'},{name: 'panel'}, {name: 'inputs'}],
-                data : integerActions
-            });
-
-            var booleanActions = [];
-            booleanActions.push(["isEmpty", null, null]);
-            booleanActions.push(["isFalse", null, null]);
-            booleanActions.push(["isNull", null, null]);
-            booleanActions.push(["isTrue", null, null]);
-
-            var bActionStore = new Ext.data.SimpleStore({
-                fields: [{name: 'value'},{name: 'panel'}, {name: 'inputs'}],
-                data : booleanActions
-            });
-
-            stringPanel.hide();
-            floatPanel.hide();
-            floatPanelRange.hide();
-            integerPanel.hide();
-            integerPanelRange.hide();
-
-            var processJSON = ORYX.EDITOR.getSerializedJSON();
-            var vardefs = jsonPath(processJSON.evalJSON(), "$.properties.vardefs");
-
-            var processVars = [];
-
-            if(vardefs) {
-                vardefs.forEach(function(item){
-                    if(item.length > 0) {
-                        var valueParts = item.split(",");
-                        for(var i=0; i < valueParts.length; i++) {
-                            var nextPart = valueParts[i];
-                            if(nextPart.indexOf(":") > 0) {
-                                var innerParts = nextPart.split(":");
-                                switch (innerParts[1]) {
-                                    case "String": processVars.push([innerParts[0], innerParts[1], sActionStore]);
-                                        break;
-                                    case "Integer": processVars.push([innerParts[0], innerParts[1], iActionStore]);
-                                        break;
-                                    case "Float": processVars.push([innerParts[0], innerParts[1], fActionStore]);
-                                        break;
-                                    case "Boolean": processVars.push([innerParts[0], innerParts[1], bActionStore]);
-                                        break;
-                                }
-                            }
-                        }
-                    }
-                });
+            function setFieldValueAndClose(value) {
+                input.setValue(value);
+                input.dataSource.getAt(input.row).set('value', value);
+                input.dataSource.commitChanges();
+                dialog.hide()
             }
 
-            var varsStore = new Ext.data.SimpleStore({
-                fields: [{name: 'value'},{name: 'type'}, {name: 'store'}],
-                data : processVars
+            var isJavaCondition = false;
+
+            Ext.each(this.dataSource.data.items, function(item){
+                if (item.data.gridProperties.propId == "oryx-conditionexpressionlanguage" && item.data['value'] == "java") isJavaCondition = true;
             });
 
-            var actionsCombo = new Ext.form.ComboBox({
-                id: 'VariableActionsCombobox',
-                editable: false,
-                displayField:'value',
-                valueField: 'value',
-                typeAhead: true,
-                mode: 'local',
-                triggerAction: 'all',
-                selectOnFocus: true,
-                listeners: {
-                    'select': function(combo, record, index){
-                        cleanCurrentInput();
-                        currentInputRecord = record;
-                        var panel = currentInputRecord.get("panel")
-                        if (panel != null) {
-                            panel.show();
-                        }
-                    }
-                }
-            });
+            var input = this;
+            var isSimpleEditor = true;
+            var initScreen = true;
 
-            var varsCombo = new Ext.form.ComboBox({
-                editable: false,
-                store: varsStore,
-                displayField:'value',
-                valueField: 'value',
-                typeAhead: true,
-                mode: 'local',
-                triggerAction: 'all',
-                selectOnFocus:true,
-                listeners: {
-                    'select': function(combo, record, index) {
-                        actionsCombo.clearValue();
-                        cleanCurrentInput();
-                        actionsCombo.bindStore(record.get("store"))
-                    }
-                }
-            });
-
-            var expressionEditorLayout = new Ext.Panel({
-                layout:'table',
-                layoutConfig: {
-                    columns: 2
-                },
-                defaults: {
-                    border:false
-                },
-                items: [varsCombo, actionsCombo,
-                    {colspan:2, items: [stringPanel, floatPanel, floatPanelRange, integerPanel, integerPanelRange]}]
-            });
+            var contentPanel;
 
             var complexEditor = new Ext.form.TextArea({
                 id: Ext.id(),
@@ -3824,287 +3652,443 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                 value: this.value.replace(/\\n/g,"\n"),
                 autoScroll: true
             });
-
-            var complexEditorLayout = new Ext.Panel({
-                items:[complexEditor]
-            });
-
-            var isEditor = true;
-
-            var onsuccessParseScript = function(response) {
-                if(response.responseText.length > 0) {
-                    var responseJson = Ext.decode(response.responseText);
-                    if (responseJson.errorCode) {
-                        if (!initScreen) alert(responseJson.errorCode);
-                        else initScreen = false;
-                        complexEditor.focus();
-                    } else {
-                        var action;
-                        var variable;
-                        var params = [];
-                        responseJson.conditions.forEach(function(condition){
-                            action = condition.condition;
-                            condition.parameters.forEach(function(parameter) {
-                                if (variable == null) variable = parameter;
-                                else params.push(parameter)
-                            });
-                        });
-                        varsCombo.setValue(variable);
-
-                        var index = varsStore.find('value', variable);
-                        var varRecord = varsStore.getAt(index);
-                        varsCombo.fireEvent('select', varsCombo, varRecord);
-
-                        actionsCombo.setValue(action);
-                        var actionStore = varRecord.get("store");
-
-                        index = actionStore.find('value', action);
-                        var actionRecord = actionStore.getAt(index);
-                        actionsCombo.fireEvent('select', actionsCombo, actionRecord);
-
-                        var panel = actionRecord.get("panel");
-
-                        if (panel != null) {
-                            var inputs = actionRecord.get("inputs");
-                            if (inputs != null && inputs.length == params.length) {
-                                var i;
-                                for (i = 0; i< inputs.length; i++) {
-                                    var value = panel.getComponent(inputs[i]).setValue(params[i]);
-                                }
-                            }
-                        }
-
-                        isEditor = true;
-                        checkRadios();
-                        return;
-
-                    }
-                }
-                isEditor = false;
-                checkRadios();
-                return;
-            }
-
-            var onfailureParseScript = function () {
-                isEditor = false;
-                checkRadios();
-                return;
-            }
-
-            var radioEditor = new Ext.form.Radio({fieldLabel: 'Expression editor', name: 'editor', inputValue: 'editor', checked: isEditor,
-                listeners: {
-                    'check': function(radio, checked) {
-                        if (!isEditor && checked) {
-                            parseScript({script: sourceEditor.getValue()});
-                        }
-                    }
-                }
-            });
-
-            var radioScript = new Ext.form.Radio({fieldLabel: 'Script editor', name: 'editor', inputValue: 'script', checked: !radioEditor,
-                listeners: {
-                    'check': function(radio, checked) {
-                        if (isEditor && checked) {
-                            var onsuccess = function(response) {
-                                if(response.responseText.length > 0) {
-                                    var responseJson = Ext.decode(response.responseText);
-                                    if (responseJson.errorCode) {
-                                        alert(responseJson.errorCode);
-                                    } else {
-                                        sourceEditor.setValue(responseJson.script)
-                                        sourceEditor.refresh();
-                                        isEditor = false;
-                                        checkRadios();
-                                        return;
-                                    }
-                                }
-                                isEditor = true;
-                                checkRadios();
-                            }
-
-                            var onfailure = function () {
-                                isEditor = true;
-                                checkRadios();
-                            }
-
-                            var result = generateScript(onsuccess, onfailure);
-                            if (result == false) {
-                                isEditor = true;
-                                checkRadios();
-                            }
-                        }
-                    }
-                }
-            });
-
-            function checkRadios() {
-                if (isEditor) {
-                    dialog.setTitle("Expression Editor");
-                    expressionEditorLayout.show();
-                    complexEditorLayout.hide();
-                } else {
-                    dialog.setTitle("Expression Editor - Press [Ctrl-Z] to activate auto-completion");
-                    expressionEditorLayout.hide();
-                    complexEditorLayout.show();
-                }
-
-                radioEditor.setValue(isEditor);
-                radioScript.setValue(!isEditor);
-            }
-
-            var radios = new Ext.form.FormPanel({
-                defaults: {
-                    border:false
-                },
-                items:[{
-                    anchor: '100%',
-                    layout:'column',
-                    defaults: {
-                        border:false
-                    },
-                    items:[{
-                        layout: 'form',
-                        items: [radioEditor]
-                    },{
-                        layout: 'form',
-                        items: [radioScript]
-                    }]
-                }]
-
-            });
-
-            var contentPanel = new Ext.Panel({
-                layout: 'table',
-                layoutConfig: {
-                    columns: 1
-                },
-                defaults: {
-                    border: false
-                },
-                items: [radios, expressionEditorLayout, complexEditorLayout]
-            });
-
             var sourceEditor;
             var hlLine;
 
-            function cleanCurrentInput () {
-                if (currentInputRecord != null) {
-                    var panel = currentInputRecord.get("panel");
-                    if (panel) {
-                        var currentInputs = currentInputRecord.get("inputs");
-                        if (currentInputs != null) {
-                            currentInputs.forEach(function(index){
-                                panel.getComponent(index).setValue(null);
-                            });
+            if (!isJavaCondition) {
+                contentPanel = new Ext.Panel({
+                    border:false,
+                    items: [complexEditor]
+                });
+
+            } else {
+                // definde the input panels for each action type
+                var currentInputRecord;
+
+                var stringPanel = new Ext.Panel({
+                    layout:'column', border:false,
+                    items:[new Ext.form.TextField({name: "stringValue"})]
+                });
+                var floatPanel = new Ext.Panel({
+                    layout:'column', border:false,
+                    items:[new Ext.form.NumberField({name: "floatValue", allowDecimals: true})]
+                });
+                var floatPanelRange = new Ext.Panel({
+                    layout:'column', border:false,
+                    items:[new Ext.form.NumberField({name: "floatFrom", allowDecimals: true}),
+                        {html: '&nbsp;-&nbsp;', border:false},
+                        new Ext.form.NumberField({name: "floatTo", allowDecimals: true})]
+                });
+                var integerPanel = new Ext.Panel({
+                    layout:'column', border:false,
+                    items:[new Ext.form.NumberField({name: "intValue", allowDecimals: false})]
+                });
+                var integerPanelRange = new Ext.Panel({
+                    layout:'column', border:false,
+                    items:[new Ext.form.NumberField({name: "intForm", allowDecimals: false}),
+                        {html: '&nbsp;-&nbsp;', border:false},
+                        new Ext.form.NumberField({name: "intTo", allowDecimals: false})]
+                });
+
+                var stringActions = [];
+                stringActions.push(["contains", stringPanel, [0]]);
+                stringActions.push(["endsWith", stringPanel, [0]]);
+                stringActions.push(["equalsTo", stringPanel, [0]]);
+                stringActions.push(["isEmpty", null, null]);
+                stringActions.push(["isNull", null, null]);
+                stringActions.push(["startsWith", stringPanel, [0]]);
+
+                var sActionStore = new Ext.data.SimpleStore({
+                    fields: [{name: 'value'},{name: 'panel'}, {name: 'inputs'}],
+                    data : stringActions
+                });
+
+                var floatActions = [];
+                floatActions.push(["between", floatPanelRange, [0, 2]]);
+                floatActions.push(["equalsTo", floatPanel, [0]]);
+                floatActions.push(["greaterThan", floatPanel, [0]]);
+                floatActions.push(["greaterOrEqualThan", floatPanel, [0]]);
+                floatActions.push(["isEmpty", null, null]);
+                floatActions.push(["isNull", null, null]);
+                floatActions.push(["lessThan", floatPanel, [0]]);
+                floatActions.push(["lessOrEqualThan", floatPanel, [0]]);
+
+                var fActionStore = new Ext.data.SimpleStore({
+                    fields: [{name: 'value'},{name: 'panel'}, {name: 'inputs'}],
+                    data : floatActions
+                });
+
+                var integerActions = [];
+                integerActions.push(["between", integerPanelRange, [0, 2]]);
+                integerActions.push(["equalsTo", integerPanel, [0]]);
+                integerActions.push(["greaterThan", integerPanel, [0]]);
+                integerActions.push(["greaterOrEqualThan", integerPanel, [0]]);
+                integerActions.push(["isEmpty", null, null]);
+                integerActions.push(["isNull", null, null]);
+                integerActions.push(["lessThan", integerPanel, [0]]);
+                integerActions.push(["lessOrEqualThan", integerPanel, [0]]);
+
+                var iActionStore = new Ext.data.SimpleStore({
+                    fields: [{name: 'value'},{name: 'panel'}, {name: 'inputs'}],
+                    data : integerActions
+                });
+
+                var booleanActions = [];
+                booleanActions.push(["isEmpty", null, null]);
+                booleanActions.push(["isFalse", null, null]);
+                booleanActions.push(["isNull", null, null]);
+                booleanActions.push(["isTrue", null, null]);
+
+                var bActionStore = new Ext.data.SimpleStore({
+                    fields: [{name: 'value'},{name: 'panel'}, {name: 'inputs'}],
+                    data : booleanActions
+                });
+
+                stringPanel.hide();
+                floatPanel.hide();
+                floatPanelRange.hide();
+                integerPanel.hide();
+                integerPanelRange.hide();
+
+                var processJSON = ORYX.EDITOR.getSerializedJSON();
+                var vardefs = jsonPath(processJSON.evalJSON(), "$.properties.vardefs");
+
+                var processVars = [];
+
+                if(vardefs) {
+                    vardefs.forEach(function(item){
+                        if(item.length > 0) {
+                            var valueParts = item.split(",");
+                            for(var i=0; i < valueParts.length; i++) {
+                                var nextPart = valueParts[i];
+                                if(nextPart.indexOf(":") > 0) {
+                                    var innerParts = nextPart.split(":");
+                                    switch (innerParts[1]) {
+                                        case "String": processVars.push([innerParts[0], innerParts[1], sActionStore]);
+                                            break;
+                                        case "Integer": processVars.push([innerParts[0], innerParts[1], iActionStore]);
+                                            break;
+                                        case "Float": processVars.push([innerParts[0], innerParts[1], fActionStore]);
+                                            break;
+                                        case "Boolean": processVars.push([innerParts[0], innerParts[1], bActionStore]);
+                                            break;
+                                    }
+                                }
+                            }
                         }
-                        panel.hide();
-                    }
-                    currentInputRecord = null;
-                }
-            }
-
-            function checkCurrentInputRecord() {
-                if (!currentInputRecord) return false;
-                var panel = currentInputRecord.get("panel");
-                if (panel == null) return true;
-                var currentInputs = currentInputRecord.get("inputs");
-                if (currentInputs != null) {
-                    var actionParams = [];
-                    currentInputs.forEach(function(index) {
-                        var value = panel.getComponent(index).getValue();
-                        if (value == null || value == "") return false;
-                        actionParams.push(value)
                     });
-                    if (actionParams.length != currentInputs.length) return false;
-                    if (actionParams.length == 2) {
-                        return actionParams[1] > actionParams[0];
-                    }
-                }
-                return true;
-            }
-
-            function generateScriptParams() {
-                var varValue = varsCombo.getValue();
-
-                if (!varValue || !checkCurrentInputRecord()) {
-                    return null;
                 }
 
-                var actionParams = [];
-                actionParams.push(varValue);
+                var varsStore = new Ext.data.SimpleStore({
+                    fields: [{name: 'value'},{name: 'type'}, {name: 'store'}],
+                    data : processVars
+                });
 
-                var panel = currentInputRecord.get("panel");
-                if (panel != null) {
-                    var currentInputs = currentInputRecord.get("inputs");
-                    if (currentInputs != null) {
-                        currentInputs.forEach(function(index) {
-                            actionParams.push(panel.getComponent(index).getValue())
-                        });
-                    }
-                }
-                var param =  {
-                    operator: "AND",
-                    conditions: [{
-                        condition: actionsCombo.getValue(),
-                        parameters: actionParams
-                    }]
-                };
-
-                return param;
-            }
-
-            function ajaxRequest(url, command, jsonParam, onsuccess, onfailure) {
-                Ext.Ajax.request({
-                    url: ORYX.PATH + url,
-                    method: 'POST',
-                    params: {
-                        command: command,
-                        message: Ext.util.JSON.encode(jsonParam)
-                    },
-                    success: function(response) {
-                        onsuccess(response);
-                    }.bind(this),
-                    failure: function() {
-                        onfailure();
+                var actionsCombo = new Ext.form.ComboBox({
+                    id: 'VariableActionsCombobox',
+                    editable: false,
+                    displayField:'value',
+                    valueField: 'value',
+                    typeAhead: true,
+                    mode: 'local',
+                    triggerAction: 'all',
+                    selectOnFocus: true,
+                    listeners: {
+                        'select': function(combo, record, index){
+                            cleanCurrentInput();
+                            currentInputRecord = record;
+                            var panel = currentInputRecord.get("panel")
+                            if (panel != null) {
+                                panel.show();
+                            }
+                        }
                     }
                 });
-            }
 
-            function parseScript(jsonParam) {
-                ajaxRequest("expressioneditor", "parseScript", jsonParam, onsuccessParseScript, onfailureParseScript);
-            }
+                var varsCombo = new Ext.form.ComboBox({
+                    editable: false,
+                    store: varsStore,
+                    displayField:'value',
+                    valueField: 'value',
+                    typeAhead: true,
+                    mode: 'local',
+                    triggerAction: 'all',
+                    selectOnFocus:true,
+                    listeners: {
+                        'select': function(combo, record, index) {
+                            actionsCombo.clearValue();
+                            cleanCurrentInput();
+                            actionsCombo.bindStore(record.get("store"))
+                        }
+                    }
+                });
 
-            function generateScript(onsuccess, onfailure) {
-                var param = generateScriptParams();
-                if (!param) {
-                    alert("Please fill correctly the form params");
-                    return false;
+                var expressionEditorLayout = new Ext.Panel({
+                    layout:'table',
+                    layoutConfig: {
+                        columns: 2
+                    },
+                    defaults: {
+                        border:false
+                    },
+                    items: [varsCombo, actionsCombo,
+                        {colspan:2, items: [stringPanel, floatPanel, floatPanelRange, integerPanel, integerPanelRange]}]
+                });
+
+                var complexEditorLayout = new Ext.Panel({
+                    items:[complexEditor]
+                });
+
+                var onsuccessParseScript = function(response) {
+                    if(response.responseText.length > 0) {
+                        var responseJson = Ext.decode(response.responseText);
+                        if (responseJson.errorCode) {
+                            if (!initScreen) alert(responseJson.errorCode);
+                            else initScreen = false;
+                            complexEditor.focus();
+                        } else {
+                            var action;
+                            var variable;
+                            var params = [];
+                            responseJson.conditions.forEach(function(condition){
+                                action = condition.condition;
+                                condition.parameters.forEach(function(parameter) {
+                                    if (variable == null) variable = parameter;
+                                    else params.push(parameter)
+                                });
+                            });
+                            varsCombo.setValue(variable);
+
+                            var index = varsStore.find('value', variable);
+                            var varRecord = varsStore.getAt(index);
+                            varsCombo.fireEvent('select', varsCombo, varRecord);
+
+                            actionsCombo.setValue(action);
+                            var actionStore = varRecord.get("store");
+
+                            index = actionStore.find('value', action);
+                            var actionRecord = actionStore.getAt(index);
+                            actionsCombo.fireEvent('select', actionsCombo, actionRecord);
+
+                            var panel = actionRecord.get("panel");
+
+                            if (panel != null) {
+                                var inputs = actionRecord.get("inputs");
+                                if (inputs != null && inputs.length == params.length) {
+                                    var i;
+                                    for (i = 0; i< inputs.length; i++) {
+                                        var value = panel.getComponent(inputs[i]).setValue(params[i]);
+                                    }
+                                }
+                            }
+                            isSimpleEditor = true;
+                            checkRadios();
+                            return;
+
+                        }
+                    }
+                    isSimpleEditor = false;
+                    checkRadios();
+                    return;
                 }
-                ajaxRequest("expressioneditor", "generateScript", param, onsuccess, onfailure);
-            }
 
-            var input = this;
+                var onfailureParseScript = function () {
+                    isSimpleEditor = false;
+                    checkRadios();
+                    return;
+                }
 
-            var onsuccessSave = function(response) {
-                if(response.responseText.length > 0) {
-                    var responseJson = Ext.decode(response.responseText);
-                    if (responseJson.errorCode) {
-                        alert(responseJson.errorCode);
+                var radioEditor = new Ext.form.Radio({fieldLabel: 'Expression editor', name: 'editor', inputValue: 'editor', checked: isSimpleEditor,
+                    listeners: {
+                        'check': function(radio, checked) {
+                            if (!isSimpleEditor && checked) {
+                                parseScript({script: sourceEditor.getValue()});
+                            }
+                        }
+                    }
+                });
+
+                var radioScript = new Ext.form.Radio({fieldLabel: 'Script editor', name: 'editor', inputValue: 'script', checked: !radioEditor,
+                    listeners: {
+                        'check': function(radio, checked) {
+                            if (isSimpleEditor && checked) {
+                                var onsuccess = function(response) {
+                                    if(response.responseText.length > 0) {
+                                        var responseJson = Ext.decode(response.responseText);
+                                        if (responseJson.errorCode) {
+                                            alert(responseJson.errorCode);
+                                        } else {
+                                            sourceEditor.setValue(responseJson.script)
+                                            sourceEditor.refresh();
+                                            isSimpleEditor = false;
+                                            checkRadios();
+                                            return;
+                                        }
+                                    }
+                                    isSimpleEditor = true;
+                                    checkRadios();
+                                }
+                                var onfailure = function () {
+                                    isSimpleEditor = true;
+                                    checkRadios();
+                                }
+                                var result = generateScript(onsuccess, onfailure);
+                                if (result == false) {
+                                    isSimpleEditor = true;
+                                    checkRadios();
+                                }
+                            }
+                        }
+                    }
+                });
+
+                function checkRadios() {
+                    if (isSimpleEditor) {
+                        expressionEditorLayout.show();
+                        complexEditorLayout.hide();
                     } else {
-                        setFieldValueAndClose(responseJson.script)
+                        expressionEditorLayout.hide();
+                        complexEditorLayout.show();
+                    }
+                    setDialogTitle(!isSimpleEditor);
+                    radioEditor.setValue(isSimpleEditor);
+                    radioScript.setValue(!isSimpleEditor);
+                }
+
+                var radios = new Ext.form.FormPanel({
+                    defaults: {border:false},
+                    items:[{
+                        anchor: '100%', layout:'column', defaults: {border:false},
+                        items:[{
+                            layout: 'form',
+                            items: [radioEditor]
+                        },{
+                            layout: 'form',
+                            items: [radioScript]
+                        }]
+                    }]
+
+                });
+
+                contentPanel = new Ext.Panel({
+                    layout: 'table',
+                    layoutConfig: {
+                        columns: 1
+                    },
+                    defaults: {
+                        border: false
+                    },
+                    items: [radios, expressionEditorLayout, complexEditorLayout]
+                });
+
+                function cleanCurrentInput () {
+                    if (currentInputRecord != null) {
+                        var panel = currentInputRecord.get("panel");
+                        if (panel) {
+                            var currentInputs = currentInputRecord.get("inputs");
+                            if (currentInputs != null) {
+                                currentInputs.forEach(function(index){
+                                    panel.getComponent(index).setValue(null);
+                                });
+                            }
+                            panel.hide();
+                        }
+                        currentInputRecord = null;
                     }
                 }
-            }
 
-            var onfailureSave = function() {
-                alert("Undefined Error")
-            }
+                function checkCurrentInputRecord() {
+                    if (!currentInputRecord) return false;
+                    var panel = currentInputRecord.get("panel");
+                    if (panel == null) return true;
+                    var currentInputs = currentInputRecord.get("inputs");
+                    if (currentInputs != null) {
+                        var actionParams = [];
+                        currentInputs.forEach(function(index) {
+                            var value = panel.getComponent(index).getValue();
+                            if (value == null || value == "") return false;
+                            actionParams.push(value)
+                        });
+                        if (actionParams.length != currentInputs.length) return false;
+                        if (actionParams.length == 2) {
+                            return actionParams[1] > actionParams[0];
+                        }
+                    }
+                    return true;
+                }
 
-            function setFieldValueAndClose(value) {
-                input.setValue(value);
-                input.dataSource.getAt(input.row).set('value', value);
-                input.dataSource.commitChanges();
-                dialog.hide()
+                function generateScriptParams() {
+                    var varValue = varsCombo.getValue();
+
+                    if (!varValue || !checkCurrentInputRecord()) {
+                        return null;
+                    }
+                    var actionParams = [];
+                    actionParams.push(varValue);
+
+                    var panel = currentInputRecord.get("panel");
+                    if (panel != null) {
+                        var currentInputs = currentInputRecord.get("inputs");
+                        if (currentInputs != null) {
+                            currentInputs.forEach(function(index) {
+                                actionParams.push(panel.getComponent(index).getValue())
+                            });
+                        }
+                    }
+                    var param =  {
+                        operator: "AND",
+                        conditions: [{
+                            condition: actionsCombo.getValue(),
+                            parameters: actionParams
+                        }]
+                    };
+                    return param;
+                }
+
+                function ajaxRequest(url, command, jsonParam, onsuccess, onfailure) {
+                    Ext.Ajax.request({
+                        url: ORYX.PATH + url,
+                        method: 'POST',
+                        params: {
+                            command: command,
+                            message: Ext.util.JSON.encode(jsonParam)
+                        },
+                        success: function(response) {
+                            onsuccess(response);
+                        }.bind(this),
+                        failure: function() {
+                            onfailure();
+                        }
+                    });
+                }
+
+                function parseScript(jsonParam) {
+                    ajaxRequest("expressioneditor", "parseScript", jsonParam, onsuccessParseScript, onfailureParseScript);
+                }
+
+                function generateScript(onsuccess, onfailure) {
+                    var param = generateScriptParams();
+                    if (!param) {
+                        alert("Please fill correctly the form params");
+                        return false;
+                    }
+                    ajaxRequest("expressioneditor", "generateScript", param, onsuccess, onfailure);
+                }
+
+                var onsuccessSave = function(response) {
+                    if(response.responseText.length > 0) {
+                        var responseJson = Ext.decode(response.responseText);
+                        if (responseJson.errorCode) {
+                            alert(responseJson.errorCode);
+                        } else {
+                            setFieldValueAndClose(responseJson.script)
+                        }
+                    }
+                }
+
+                var onfailureSave = function() {
+                    alert("Undefined Error")
+                }
             }
 
             var dialog = new Ext.Window({
@@ -4135,10 +4119,14 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                 buttons		: [{
                     text: ORYX.I18N.PropertyWindow.ok,
                     handler: function() {
-                        if (radioEditor.getValue()) {
-                            generateScript(onsuccessSave, onfailureSave);
+                        if (isJavaCondition) {
+                            if (radioEditor.getValue()) {
+                                generateScript(onsuccessSave, onfailureSave);
+                            } else {
+                                setFieldValueAndClose(sourceEditor.getValue().replace(/\r\n|\r|\n/g,"\\n"));
+                            }
                         } else {
-                            setFieldValueAndClose(sourceEditor.getValue().replace(/\r\n|\r|\n/g,"\\n"))
+                            setFieldValueAndClose(sourceEditor.getValue().replace(/\r\n|\r|\n/g,"\\n"));
                         }
                     }.bind(this)
                 }, {
@@ -4150,8 +4138,13 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                 }]
             });
 
-            var initScreen = true;
-            if (this.getValue() != null && this.getValue() != "") parseScript({script:this.getValue()})
+            function setDialogTitle(complexEditor) {
+                if (complexEditor) dialog.setTitle("Expression Editor - Press [Ctrl-Z] to activate auto-completion");
+                else dialog.setTitle("Expression Editor");
+            }
+
+            if (isJavaCondition && this.getValue() != null && this.getValue() != "") parseScript({script:this.getValue()});
+            else setDialogTitle(true);
 
             dialog.show();
 
@@ -4168,8 +4161,8 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                     hlLine = sourceEditor.setLineClass(sourceEditor.getCursor().line, null, "activeline");
                 }.bind(this)
             });
-            hlLine = sourceEditor.setLineClass(0, "activeline");
 
+            hlLine = sourceEditor.setLineClass(0, "activeline");
 
             this.grid.stopEditing();
         } catch (err) {
@@ -4178,81 +4171,6 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
     }
 });
 
-Ext.form.ComplexExpressionField = Ext.extend(Ext.form.TriggerField,  {
-	onTriggerClick : function(){
-		if(this.disabled){
-            return;
-        }
-		var ceta = new Ext.form.TextArea({
-            id: Ext.id(),
-            fieldLabel: "Expression Editor",
-            value: this.value.replace(/\\n/g,"\n"),
-            autoScroll: true
-            });
-		
-		var sourceEditor;
-		var hlLine;
-		
-		var dialog = new Ext.Window({ 
-			layout		: 'anchor',
-			autoCreate	: true, 
-			title		: 'Expression Editor - Press [Ctrl-Z] to activate auto-completion', 
-			height		: 430, 
-			width		: 550, 
-			modal		: true,
-			collapsible	: false,
-			fixedcenter	: true, 
-			shadow		: true, 
-			resizable   : true,
-			proxyDrag	: true,
-			autoScroll  : true,
-			keys:[{
-				key	: 27,
-				fn	: function(){
-						dialog.hide()
-				}.bind(this)
-			}],
-			items		:[ceta],
-			listeners	:{
-				hide: function(){
-					this.fireEvent('dialogClosed', this.value);
-					dialog.destroy();
-				}.bind(this)				
-			},
-			buttons		: [{
-                text: ORYX.I18N.PropertyWindow.ok,
-                handler: function(){
-					this.setValue(sourceEditor.getValue().replace(/\r\n|\r|\n/g,"\\n"));
-					this.dataSource.getAt(this.row).set('value', sourceEditor.getValue());
-					this.dataSource.commitChanges();
-					dialog.hide()
-                }.bind(this)
-            }, {
-                text: ORYX.I18N.PropertyWindow.cancel,
-                handler: function(){
-					this.setValue(this.value);
-                	dialog.hide()
-                }.bind(this)
-            }]
-		});	
-		dialog.show();		
-		this.foldFunc = CodeMirror.newFoldFunction(CodeMirror.braceRangeFinder);
-		sourceEditor = CodeMirror.fromTextArea(document.getElementById(ceta.getId()), {
-			  mode: "text/x-java",
-			  lineNumbers: true,
-			  lineWrapping: true,
-			  matchBrackets: true,
-			  onGutterClick: this.foldFunc,
-			  extraKeys: {"Ctrl-Z": function(cm) {CodeMirror.hint(cm, CodeMirror.jbpmHint, dialog);}},
-			  onCursorActivity: function() {
-				  sourceEditor.setLineClass(hlLine, null, null);
-	 			     hlLine = sourceEditor.setLineClass(sourceEditor.getCursor().line, null, "activeline");
-	 		  }.bind(this)
-			});
-		hlLine = sourceEditor.setLineClass(0, "activeline");
-		this.grid.stopEditing();
-	}
-});
 Ext.form.ComplexCalledElementField = Ext.extend(Ext.form.TriggerField,  {
 	onTriggerClick : function(){
         if(this.disabled){

@@ -1,0 +1,5 @@
+        return      kfunctions.between(a,  "o\"ne"   , "two" ) ;
+      return     kfunctions.isNull(variable1)  ;
+return     kfunctions.greaterThan(variable2, " the value ");
+return kfunctions.isNull(   a);
+ return kfunctions.greaterOrEqualThan(v, "one");

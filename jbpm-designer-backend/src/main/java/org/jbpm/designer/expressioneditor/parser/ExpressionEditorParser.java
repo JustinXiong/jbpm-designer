@@ -1,3 +1,19 @@
+/**
+ * Copyright 2012 JBoss Inc
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.jbpm.designer.expressioneditor.parser;
 
 import org.jbpm.designer.expressioneditor.model.Condition;
@@ -14,7 +30,9 @@ import java.util.regex.Pattern;
 
 public class ExpressionEditorParser {
 
-    public static final String VARIABLE_NAME_PARAM_REGEX = "[$_a-zA-Z][$_a-zA-Z0-9]*";
+    private static final String VARIABLE_NAME_PARAM_REGEX = "[$_a-zA-Z][$_a-zA-Z0-9]*";
+
+    private static final String KIE_FUNCTIONS = "kfunctions.";
 
     private static Map<String, FunctionDef> functionsRegistry = new HashMap<String, FunctionDef>();
 
@@ -161,7 +179,10 @@ public class ExpressionEditorParser {
         parseReturnSentence();
 
         functionName = parseFunctionName();
+        functionName = functionName.substring(KIE_FUNCTIONS.length(), functionName.length());
         functionDef = functionsRegistry.get(functionName);
+
+        if (functionDef == null) throw new ParseException("undefined function: " + functionName, parseIndex);
 
         conditionExpression.setOperator(ConditionExpression.AND_OPERATOR);
         condition = new Condition(functionName);
@@ -198,14 +219,17 @@ public class ExpressionEditorParser {
         int index = nextNonBlank();
         if (index < 0) throw new ParseException("return sentence was not found.", parseIndex);
 
-        if (!expression.startsWith("return ", index)) {
+        if (!expression.startsWith("return", index)) {
             //the expression does not start with return.
             throw new ParseException("return sentence was not found.", parseIndex);
         }
 
-        parseIndex = index + "return ".length();
+        parseIndex = index + "return".length();
 
-        return "return ";
+        //next character after return must be a \n or a " "
+        if (!isBlank(expression.charAt(parseIndex))) throw new ParseException("return sentece must be followed by a blank space or a line break.", parseIndex);
+
+        return "return";
     }
 
     private String parseFunctionName() throws ParseException {
@@ -216,8 +240,8 @@ public class ExpressionEditorParser {
         String functionName = null;
 
         for(FunctionDef functionDef : functionsRegistry.values()) {
-            if (expression.startsWith(functionDef.getName()+"(", index)) {
-                functionName = functionDef.getName();
+            if (expression.startsWith(KIE_FUNCTIONS+functionDef.getName()+"(", index)) {
+                functionName = KIE_FUNCTIONS+functionDef.getName();
                 break;
             }
         }
@@ -248,6 +272,7 @@ public class ExpressionEditorParser {
         parseIndex = index +1;
         while (parseIndex < expression.length()) {
             if (!isBlank(expression.charAt(parseIndex))) throw new ParseException("sentence not closed properly", parseIndex);
+            parseIndex++;
         }
 
         return ";";
@@ -301,15 +326,7 @@ public class ExpressionEditorParser {
         for (int i = index+1; i < expression.length(); i++) {
             if (expression.charAt(i) == '\\') {
                 last = expression.charAt(i);
-            } else if (expression.charAt(i) != '"') {
-                if (last != null) {
-                    shift++;
-                    param.append(last);
-                }
-                last = null;
-                shift++;
-                param.append(expression.charAt(i));
-            } else {
+            } else if (expression.charAt(i) == '"') {
                 if (scapeChar.equals(last)) {
                     shift += 2;
                     param.append('"');
@@ -319,7 +336,25 @@ public class ExpressionEditorParser {
                     strReaded = true;
                     break;
                 }
+            } else if (expression.charAt(i) == 'n') {
+                if (scapeChar.equals(last)) {
+                    shift += 2;
+                    param.append('\n');
+                } else {
+                    shift += 1;
+                    param.append(expression.charAt(i));
+                }
+                last = null;
+            } else {
+                if (last != null) {
+                    shift++;
+                    param.append(last);
+                }
+                last = null;
+                shift++;
+                param.append(expression.charAt(i));
             }
+
         }
 
         if (!strReaded) throw new ParseException("string parameter not found", parseIndex);
@@ -333,6 +368,18 @@ public class ExpressionEditorParser {
 
         for (int i = parseIndex; i < expression.length(); i++) {
             if (!isBlank(expression.charAt(i))) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private int nextBlank() {
+        if (parseIndex < 0) return -1;
+
+        for (int i = parseIndex; i < expression.length(); i++) {
+            if (isBlank(expression.charAt(i))) {
                 return i;
             }
         }

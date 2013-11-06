@@ -1,0 +1,32 @@
+
+
+
+
+
+
+
+ return
+kfunctions.greaterOrEqualThan(
+variable
+,
+
+ "onáéö great! \"\n   áéíóúñÑ @|#~!·$%&/()=?¿"
+
+)
+
+;
+
+
+
+   
+   
+
+   
+
+
+ 
+ 
+ 
+
+
+

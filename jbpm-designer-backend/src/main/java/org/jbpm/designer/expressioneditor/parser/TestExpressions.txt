@@ -1,7 +1,0 @@
-    return fourParams(uno, "dos", "tres"   , "cuatro") ;
-        return      between(a,  "u\"no"   , "dos" ) ;
-      return     isNull(coco)  ;
-return     greaterThan(value, " to set ");
-return isNull(   a)
- greaterThan(22, "uno", "dos")
-

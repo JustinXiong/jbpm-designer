@@ -23,36 +23,25 @@ public class ExpressionEditorParser {
     private String expression;
 
     static {
-        FunctionDef between = new FunctionDef("between");
-        between.addParam("param1", Object.class);
-        between.addParam("param2", String.class);
-        between.addParam("param3", String.class);
-        functionsRegistry.put(between.getName(), between);
+
+        //Operators for all types:
 
         FunctionDef isNull = new FunctionDef("isNull");
         isNull.addParam("param1", Object.class);
         functionsRegistry.put(isNull.getName(), isNull);
 
-        FunctionDef isEmpty = new FunctionDef("isNull");
-        isEmpty.addParam("param1", Object.class);
-        functionsRegistry.put(isEmpty.getName(), isEmpty);
-
-        FunctionDef greaterThan = new FunctionDef("greaterThan");
-        greaterThan.addParam("param1", Object.class);
-        greaterThan.addParam("param2", String.class);
-        functionsRegistry.put(greaterThan.getName(), greaterThan);
-
-        FunctionDef fourParams = new FunctionDef("fourParams");
-        fourParams.addParam("param1", Object.class);
-        fourParams.addParam("param2", String.class);
-        fourParams.addParam("param3", String.class);
-        fourParams.addParam("param4", String.class);
-        functionsRegistry.put(fourParams.getName(), fourParams);
+        //Global operators:
 
         FunctionDef equalsTo = new FunctionDef("equalsTo");
         equalsTo.addParam("param1", Object.class);
         equalsTo.addParam("param2", String.class);
         functionsRegistry.put(equalsTo.getName(), equalsTo);
+
+        //Operators for String type:
+
+        FunctionDef isEmpty = new FunctionDef("isEmpty");
+        isEmpty.addParam("param1", Object.class);
+        functionsRegistry.put(isEmpty.getName(), isEmpty);
 
         FunctionDef contains = new FunctionDef("contains");
         contains.addParam("param1", Object.class);
@@ -68,6 +57,45 @@ public class ExpressionEditorParser {
         endsWith.addParam("param1", Object.class);
         endsWith.addParam("param2", String.class);
         functionsRegistry.put(endsWith.getName(), endsWith);
+
+        // Operators for Numeric types:
+
+        FunctionDef greaterThan = new FunctionDef("greaterThan");
+        greaterThan.addParam("param1", Object.class);
+        greaterThan.addParam("param2", String.class);
+        functionsRegistry.put(greaterThan.getName(), greaterThan);
+
+        FunctionDef greaterOrEqualThan = new FunctionDef("greaterOrEqualThan");
+        greaterOrEqualThan.addParam("param1", Object.class);
+        greaterOrEqualThan.addParam("param2", String.class);
+        functionsRegistry.put(greaterOrEqualThan.getName(), greaterOrEqualThan);
+
+        FunctionDef lessThan = new FunctionDef("lessThan");
+        lessThan.addParam("param1", Object.class);
+        lessThan.addParam("param2", String.class);
+        functionsRegistry.put(lessThan.getName(), lessThan);
+
+        FunctionDef lessOrEqualThan = new FunctionDef("lessOrEqualThan");
+        lessOrEqualThan.addParam("param1", Object.class);
+        lessOrEqualThan.addParam("param2", String.class);
+        functionsRegistry.put(lessOrEqualThan.getName(), lessOrEqualThan);
+
+        FunctionDef between = new FunctionDef("between");
+        between.addParam("param1", Object.class);
+        between.addParam("param2", String.class);
+        between.addParam("param3", String.class);
+        functionsRegistry.put(between.getName(), between);
+
+        // Operators for Boolean type:
+
+        FunctionDef isTrue = new FunctionDef("isTrue");
+        isTrue.addParam("param1", Object.class);
+        functionsRegistry.put(isTrue.getName(), isTrue);
+
+
+        FunctionDef isFalse = new FunctionDef("isFalse");
+        isFalse.addParam("param1", Object.class);
+        functionsRegistry.put(isFalse.getName(), isFalse);
 
     }
 

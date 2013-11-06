@@ -22,5 +22,8 @@ public interface ExpressionEditorErrors {
 
     static final String INVALID_CONDITION_ERROR = "INVALID_CONDITION_ERROR";
 
+    static final String SCRIPT_PARSING_ERROR = "SCRIPT_PARSING_ERROR";
+
+    static final String SCRIPT_GENERATION_ERROR = "SCRIPT_GENERATION_ERROR";
 
 }

@@ -19,20 +19,17 @@ package org.jbpm.designer.expressioneditor.parser;
 import org.jbpm.designer.expressioneditor.model.Condition;
 import org.jbpm.designer.expressioneditor.model.ConditionExpression;
 
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ExpressionEditorParser {
+public class ExpressionParser {
 
     private static final String VARIABLE_NAME_PARAM_REGEX = "[$_a-zA-Z][$_a-zA-Z0-9]*";
 
-    private static final String KIE_FUNCTIONS = "kfunctions.";
+    public static final String KIE_FUNCTIONS = "kfunctions.";
 
     private static Map<String, FunctionDef> functionsRegistry = new HashMap<String, FunctionDef>();
 
@@ -117,56 +114,9 @@ public class ExpressionEditorParser {
 
     }
 
-    public ExpressionEditorParser(String expression) {
+    public ExpressionParser(String expression) {
         this.expression = expression;
         this.parseIndex = expression != null ? 0 : -1;
-    }
-
-    public static void main(String args[]) {
-
-        try {
-
-            //todo move this to a JUnit test
-            LineNumberReader lineReader = new LineNumberReader(new InputStreamReader(new FileInputStream("/home/wmedvede/development/projects/droolsjbpm/jbpm-designer/jbpm-designer-backend/src/main/java/org/jbpm/designer/expressioneditor/parser/TestExpressions.txt")));
-            String line = null;
-            while ((line = lineReader.readLine()) != null) {
-                System.out.println("line("+lineReader.getLineNumber()+") :" + line);
-
-                ExpressionEditorParser parser = new ExpressionEditorParser(line);
-                try {
-                ConditionExpression conditionExpression = parser.parse();
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-
-                int i = 0;
-                /*
-
-                System.out.println("1:" + parser.parseReturnSentence());
-                System.out.println("2:" + parser.parseFunctionName());
-                System.out.println("3:" + parser.parseVariableName());
-                System.out.println("4:" + parser.parseParamDelimiter());
-                System.out.println("5:" + parser.parseStringParameter());
-                System.out.println("6:" + parser.parseParamDelimiter());
-                System.out.println("7:" + parser.parseStringParameter());
-                System.out.println("8:" + parser.parseParamDelimiter());
-                System.out.println("9:" + parser.parseStringParameter());
-                System.out.println("10:" + parser.parseFunctionClose());
-                System.out.println("11:" + parser.parseSentenceClose());
-
-                */
-
-
-                //parser.parseASaco(line);
-                //parser.parse(line);
-
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-
     }
 
     public ConditionExpression parse() throws ParseException {
@@ -308,7 +258,6 @@ public class ExpressionEditorParser {
         parseIndex = index + 1;
         return ",";
     }
-
 
     private String parseStringParameter() throws ParseException {
         int index = nextNonBlank();

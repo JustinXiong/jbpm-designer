@@ -18,7 +18,7 @@ package org.jbpm.designer.expressioneditor;
 
 import org.jbpm.designer.expressioneditor.model.Condition;
 import org.jbpm.designer.expressioneditor.model.ConditionExpression;
-import org.jbpm.designer.expressioneditor.parser.ExpressionEditorParser;
+import org.jbpm.designer.expressioneditor.parser.ExpressionParser;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -35,12 +35,12 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 
 
-public class ExpressionEditorParserTest {
+public class ExpressionParserTest {
 
-    Logger logger = LoggerFactory.getLogger(ExpressionEditorParserTest.class);
+    Logger logger = LoggerFactory.getLogger(ExpressionParserTest.class);
 
     @Test
-    @Ignore
+    //@Ignore
     public void testOneScriptPerLine() throws Exception {
 
      /*
@@ -95,7 +95,7 @@ public class ExpressionEditorParserTest {
 
             logger.debug("line(" + lineReader.getLineNumber() + ") :" + line);
 
-            ExpressionEditorParser parser = new ExpressionEditorParser(line);
+            ExpressionParser parser = new ExpressionParser(line);
 
             ConditionExpression conditionExpression = parser.parse();
             assertEqualsExpression(expectedExpressions.get(lineReader.getLineNumber()-1) , conditionExpression);
@@ -127,7 +127,7 @@ public class ExpressionEditorParserTest {
         expectedCondition.addParam("onáéö great! \"\n   áéíóúñÑ @|#~!·$%&/()=?¿");
         expectedExpression.getConditions().add(expectedCondition);
 
-        ExpressionEditorParser parser = new ExpressionEditorParser(script);
+        ExpressionParser parser = new ExpressionParser(script);
         ConditionExpression actualExpression = parser.parse();
 
         System.out.println(actualExpression.getOperator());
@@ -140,8 +140,6 @@ public class ExpressionEditorParserTest {
 
         assertEqualsExpression(expectedExpression, actualExpression);
     }
-
-
 
     public void assertEqualsExpression(ConditionExpression expected, ConditionExpression actual) {
         assertNotNull(actual);

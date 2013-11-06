@@ -17,10 +17,10 @@ package org.jbpm.designer.expressioneditor.server;
 
 import org.jbpm.designer.expressioneditor.marshalling.ExpressionEditorMessageJSONMarshaller;
 import org.jbpm.designer.expressioneditor.marshalling.ExpressionEditorMessageJSONUnmarshaller;
-import org.jbpm.designer.expressioneditor.model.Condition;
 import org.jbpm.designer.expressioneditor.model.ConditionExpression;
 import org.jbpm.designer.expressioneditor.model.ExpressionEditorMessage;
-import org.jbpm.designer.expressioneditor.parser.ExpressionEditorParser;
+import org.jbpm.designer.expressioneditor.parser.ExpressionParser;
+import org.jbpm.designer.expressioneditor.parser.ExpressionScriptGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +50,6 @@ public class ExpressionEditorProcessor {
 
     public void doProcess(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         res.setContentType("application/json");
-
         try {
 
             ExpressionEditorMessageJSONMarshaller marshaller = new ExpressionEditorMessageJSONMarshaller();
@@ -80,7 +79,6 @@ public class ExpressionEditorProcessor {
                 return;
             }
 
-
             if (GENERATE_COMMAND.equals(command)) {
                 responseMessage = doGenerateScript(requestMessage);
             } else if (PARSE_COMMAND.equals(command)) {
@@ -89,7 +87,6 @@ public class ExpressionEditorProcessor {
 
             if (responseMessage != null) {
                 try {
-
                     String jsonResponse = marshaller.marshall(responseMessage);
                     if (logger.isDebugEnabled()) {
                         logger.debug("sending response message: " + jsonResponse);
@@ -107,24 +104,22 @@ public class ExpressionEditorProcessor {
 
     private ExpressionEditorMessage doParseScript(ExpressionEditorMessage requestMessage) {
 
-        //TODO, partial implementation
-        //TODO add controls.
-
+        //TODO add more fine grained controls.
         String script = requestMessage.getScript();
         ConditionExpression conditionExpression = null;
 
         if (logger.isDebugEnabled()) logger.debug("parsing script: " + script);
 
         try {
-            ExpressionEditorParser parser = new ExpressionEditorParser(script);
+            ExpressionParser parser = new ExpressionParser(script);
             conditionExpression = parser.parse();
             requestMessage.setExpression(conditionExpression);
             requestMessage.setErrorCode(null);
             requestMessage.setErrorMessage(null);
         } catch (ParseException e) {
             logger.error("Script sent to server couldn't be parsed: " + script + " due to the following error: " + e.getMessage(), e);
+            requestMessage.setErrorCode(ExpressionEditorErrors.SCRIPT_PARSING_ERROR);
             requestMessage.setErrorMessage(e.getMessage());
-            requestMessage.setErrorCode(e.getMessage());
             requestMessage.setExpression(new ConditionExpression());
         }
         return requestMessage;
@@ -133,37 +128,18 @@ public class ExpressionEditorProcessor {
     private ExpressionEditorMessage doGenerateScript(ExpressionEditorMessage requestMessage) {
         ExpressionEditorMessage responseMessage = new ExpressionEditorMessage();
         List<String> errors = new ArrayList<String>();
+        ExpressionScriptGenerator generator = new ExpressionScriptGenerator();
 
         if (isValidMessageForCommand(GENERATE_COMMAND, requestMessage)) {
             ConditionExpression expression = requestMessage.getExpression();
-            String operator = null;
-            StringBuilder script = new StringBuilder();
-            int validTerms = 0;
+            String script = generator.generateScript(expression, errors);
 
-            //First version implementation. At the moment we don't need a more elaborated programming.
-            //TODO we can provide a more elaborated generation if needed.
-            if ("OR".equals(expression.getOperator())) {
-                operator = "||";
-            } else if ("AND".equals(expression.getOperator())) {
-                operator = "&&";
-            } else if (expression.getConditions().size() > 1) {
-                //we have multiple conditions and the operator is not defined.
-                //the default operator will be AND
-                operator = "&&";
+            if (script == null) {
+                //process the errors.
+                requestMessage.setErrorCode(ExpressionEditorErrors.SCRIPT_GENERATION_ERROR);
+                responseMessage.setErrorMessage(concat(errors));
             }
-
-            for (Condition condition : expression.getConditions()) {
-                if (addConditionToScript(condition, script, operator, validTerms, errors) > 0) {
-                    validTerms++;
-                } else {
-                    //we have an invalid condition.
-                    //at the moment the approach is that all the generation fails.
-                    requestMessage.setErrorCode(ExpressionEditorErrors.INVALID_CONDITION_ERROR);
-                    return requestMessage;
-                }
-            }
-
-            responseMessage.setScript("return " + script.toString() + ";");
+            responseMessage.setScript(script);
 
         } else {
             responseMessage.setErrorCode(ExpressionEditorErrors.INVALID_MESSAGE_ERROR);
@@ -171,41 +147,7 @@ public class ExpressionEditorProcessor {
         return responseMessage;
     }
 
-    private int addConditionToScript(final Condition condition, final StringBuilder script, final String operator, final int validTerms, final List<String> errors) {
-        if (condition == null) return 0;
-        if (!isValidFunction(condition.getFunction())) {
-            errors.add("Invalid function : " + condition.getFunction());
-            return 0;
-        }
-        //TODO evaluate if we put more validations.
-        if (validTerms > 0) {
-            script.append(" " + operator + " ");
-        } else {
-            script.append(" ");
-        }
-        script.append(condition.getFunction().trim());
-        script.append("(");
-        boolean first = true;
-        for (String param : condition.getParameters()) {
-            if (first) {
-                //first parameter is always a process variable name.
-                script.append(param);
-                first = false;
-            } else {
-                //the other parameters are always string parameters.
-                script.append(", ");
-                script.append("\""+param+"\"");
-            }
-        }
-        script.append(")");
-        return 1;
-    }
-
-    boolean isValidFunction(String function) {
-        return function != null && !"".equals(function.trim());
-    }
-
-    boolean isValidMessageForCommand(String command, ExpressionEditorMessage message) {
+    private boolean isValidMessageForCommand(String command, ExpressionEditorMessage message) {
         if (GENERATE_COMMAND.equals(command)) {
             if (message.getExpression() == null) {
                 logger.error("No expression is present in message: " + message);
@@ -216,7 +158,21 @@ public class ExpressionEditorProcessor {
         return true;
     }
 
-    boolean isValidCommand(String command) {
+    private boolean isValidCommand(String command) {
         return PARSE_COMMAND.equals(command) || GENERATE_COMMAND.equals(command);
+    }
+
+    private String concat(List<String> values) {
+        StringBuilder result = new StringBuilder();
+        if (values == null || values.size() == 0) return result.toString();
+        boolean first = true;
+        for (String value : values) {
+            if (!first) {
+                result.append(", ");
+            }
+            result.append(value);
+            first = false;
+        }
+        return result.toString();
     }
 }

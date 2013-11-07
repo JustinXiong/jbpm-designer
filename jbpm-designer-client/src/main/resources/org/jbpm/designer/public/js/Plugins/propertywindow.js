@@ -3843,8 +3843,6 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                     var responseJson = Ext.decode(response.responseText);
                     if (responseJson.errorMessage) {
                         if (!initScreen) alert(responseJson.errorMessage);
-                        else initScreen = false;
-                        complexEditor.focus();
                     } else {
                         var action;
                         var variable;
@@ -3880,28 +3878,30 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                                 }
                             }
                         }
-                        isSimpleEditor = true;
-                        checkRadios();
+                        checkRadios(true);
                         return;
-
                     }
                 }
-                isSimpleEditor = false;
-                checkRadios();
-                return;
+                checkRadios(false);
             }
 
             var onfailureParseScript = function () {
-                isSimpleEditor = false;
-                checkRadios();
-                return;
+                checkRadios(false);
             }
 
             var radioEditor = new Ext.form.Radio({fieldLabel: 'Expression editor', name: 'editor', inputValue: 'editor', checked: isSimpleEditor,
                 listeners: {
                     'check': function(radio, checked) {
                         if (!isSimpleEditor && checked) {
-                            parseScript({script: sourceEditor.getValue()});
+                            if (sourceEditor.getValue() == null || sourceEditor.getValue().trim() == "") {
+                                varsCombo.clearValue();
+                                actionsCombo.clearValue();
+                                cleanCurrentInput();
+                                checkRadios(true);
+                            } else {
+                                complexEditor.setValue(sourceEditor.getValue());
+                                parseScript({script: sourceEditor.getValue()});
+                            }
                         }
                     }
                 }
@@ -3920,29 +3920,26 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                                         sourceEditor.toTextArea();
                                         sourceEditor = null;
                                         complexEditor.setValue(responseJson.script);
-                                        isSimpleEditor = false;
-                                        checkRadios();
+                                        checkRadios(false);
                                         return;
                                     }
                                 }
-                                isSimpleEditor = true;
-                                checkRadios();
+                                checkRadios(true);
                             }
                             var onfailure = function () {
-                                isSimpleEditor = true;
-                                checkRadios();
+                                checkRadios(true);
                             }
                             var result = generateScript(onsuccess, onfailure);
                             if (result == false) {
-                                isSimpleEditor = true;
-                                checkRadios();
+                                checkRadios(true);
                             }
                         }
                     }
                 }
             });
 
-            function checkRadios() {
+            function checkRadios(editor) {
+                isSimpleEditor = editor;
                 if (isSimpleEditor) {
                     expressionEditorLayout.show();
                     complexEditorLayout.hide();
@@ -4046,9 +4043,9 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                 return param;
             }
 
-            function ajaxRequest(url, command, jsonParam, onsuccess, onfailure) {
+            function ajaxRequest(command, jsonParam, onsuccess, onfailure) {
                 Ext.Ajax.request({
-                    url: ORYX.PATH + url,
+                    url: ORYX.PATH + 'expressioneditor',
                     method: 'POST',
                     params: {
                         command: command,
@@ -4064,7 +4061,7 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
             }
 
             function parseScript(jsonParam) {
-                ajaxRequest("expressioneditor", "parseScript", jsonParam, onsuccessParseScript, onfailureParseScript);
+                ajaxRequest("parseScript", jsonParam, onsuccessParseScript, onfailureParseScript);
             }
 
             function generateScript(onsuccess, onfailure) {
@@ -4073,7 +4070,7 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                     alert("Please fill correctly the form params");
                     return false;
                 }
-                ajaxRequest("expressioneditor", "generateScript", param, onsuccess, onfailure);
+                ajaxRequest("generateScript", param, onsuccess, onfailure);
             }
 
             var onsuccessSave = function(response) {
@@ -4162,10 +4159,11 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
         }
 
         if (isJavaCondition) {
-            if (this.getValue() != null && this.getValue() != "") parseScript({script:this.getValue()});
-            else {
-                isSimpleEditor = true;
-                checkRadios()
+            if (this.getValue() != null && this.getValue() != "") {
+                parseScript({script:this.getValue()});
+                initScreen = false;
+            } else {
+                checkRadios(true)
             }
         } else setDialogTitle(true);
 

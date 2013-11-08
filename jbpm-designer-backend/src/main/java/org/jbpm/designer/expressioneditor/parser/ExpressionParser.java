@@ -274,7 +274,13 @@ public class ExpressionParser {
         StringBuilder param = new StringBuilder();
         for (int i = index+1; i < expression.length(); i++) {
             if (expression.charAt(i) == '\\') {
-                last = expression.charAt(i);
+                if (scapeChar.equals(last)) {
+                    shift += 2;
+                    param.append('\\');
+                    last = null;
+                } else {
+                    last = expression.charAt(i);
+                }
             } else if (expression.charAt(i) == '"') {
                 if (scapeChar.equals(last)) {
                     shift += 2;

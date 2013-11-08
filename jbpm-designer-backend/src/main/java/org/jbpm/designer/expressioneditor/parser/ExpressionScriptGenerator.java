@@ -33,8 +33,8 @@ public class ExpressionScriptGenerator {
         int validTerms = 0;
 
         //First version implementation. At the moment we don't need a more elaborated programming or templates
-        //to generated the script..
-        //TODO we can provide a more elaborated generation if needed.
+        //to generate the script.
+        //For version 6.1 we can provide a more elaborated generation if needed.
 
         if ("OR".equals(expression.getOperator())) {
             operator = "||";
@@ -84,11 +84,38 @@ public class ExpressionScriptGenerator {
                 //the other parameters are always string parameters.
                 //TODO escape " and line break charactrers.
                 script.append(", ");
-                script.append("\""+param+"\"");
+                script.append("\""+escapeStringParam(param)+"\"");
             }
         }
         script.append(")");
         return 1;
+    }
+
+    private String escapeStringParam(String param) {
+        if (param == null) return null;
+        StringBuilder escapedParam = new StringBuilder(param.length() * 2);
+        char c;
+        for (int i = 0; i < param.length(); i++) {
+            c = param.charAt(i);
+            switch (c) {
+                case '"' :
+                    escapedParam.append('\\');
+                    escapedParam.append('"');
+                    break;
+                case '\n' :
+                    escapedParam.append('\\');
+                    escapedParam.append('n');
+                    break;
+                case '\\' :
+                    escapedParam.append('\\');
+                    escapedParam.append('\\');
+                    break;
+                default:
+                    escapedParam.append(c);
+
+            }
+        }
+        return escapedParam.toString();
     }
 
     private boolean isValidFunction(String function) {

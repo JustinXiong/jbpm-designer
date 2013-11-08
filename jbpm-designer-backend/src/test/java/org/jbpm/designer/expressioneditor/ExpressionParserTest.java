@@ -124,7 +124,7 @@ public class ExpressionParserTest {
         ConditionExpression expectedExpression = new ConditionExpression(ConditionExpression.AND_OPERATOR);
         Condition expectedCondition = new Condition("greaterOrEqualThan");
         expectedCondition.addParam("variable");
-        expectedCondition.addParam("onáéö great! \"\n   áéíóúñÑ @|#~!·$%&/()=?¿");
+        expectedCondition.addParam("o\\náéö great! \"\n   áéíóúñÑ @|#~!·$%&/()=?¿");
         expectedExpression.getConditions().add(expectedCondition);
 
         ExpressionParser parser = new ExpressionParser(script);

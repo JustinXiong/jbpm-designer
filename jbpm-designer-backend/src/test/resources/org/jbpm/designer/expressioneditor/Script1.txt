@@ -10,7 +10,7 @@ kfunctions.greaterOrEqualThan(
 variable
 ,
 
- "onáéö great! \"\n   áéíóúñÑ @|#~!·$%&/()=?¿"
+ "o\\náéö great! \"\n   áéíóúñÑ @|#~!·$%&/()=?¿"
 
 )
 

@@ -3645,7 +3645,7 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
 
         var contentPanel;
 
-        var complexEditor = new Ext.form.TextArea({
+        var scriptEditor = new Ext.form.TextArea({
             id: Ext.id(),
             fieldLabel: "Expression Editor",
             value: this.value.replace(/\\n/g,"\n"),
@@ -3657,7 +3657,7 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
         if (!isJavaCondition) {
             contentPanel = new Ext.Panel({
                 border:false,
-                items: [complexEditor]
+                items: [scriptEditor]
             });
 
         } else {
@@ -3824,6 +3824,7 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
 
             var expressionEditorLayout = new Ext.Panel({
                 layout:'table',
+                title: 'Editor',
                 layoutConfig: {
                     columns: 2
                 },
@@ -3834,8 +3835,13 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                     {colspan:2, items: [stringPanel, floatPanel, floatPanelRange, integerPanel, integerPanelRange]}]
             });
 
-            var complexEditorLayout = new Ext.Panel({
-                items:[complexEditor]
+            var scriptEditorLayout = new Ext.Panel({
+                title: 'Script',
+                layout:'card',
+                defaults: {
+                    border:false
+                },
+                items:[scriptEditor]
             });
 
             var onsuccessParseScript = function(response) {
@@ -3843,6 +3849,7 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                     var responseJson = Ext.decode(response.responseText);
                     if (responseJson.errorMessage) {
                         if (!initScreen) alert(responseJson.errorMessage);
+                        isSimpleEditor = false;
                     } else {
                         var action;
                         var variable;
@@ -3878,105 +3885,80 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                                 }
                             }
                         }
-                        checkRadios(true);
-                        return;
+                        isSimpleEditor = true;
                     }
                 }
-                checkRadios(false);
+                initScreen = false;
+                if (isSimpleEditor) {
+                    contentPanel.setActiveTab(expressionEditorLayout);
+                } else {
+                    contentPanel.setActiveTab(scriptEditorLayout);
+                    initCodeEditor()
+                }
             }
 
             var onfailureParseScript = function () {
-                checkRadios(false);
+                sourceEditor.toTextArea();
+                sourceEditor = null;
+                contentPanel.setActiveTab(scriptEditorLayout);
+                initCodeEditor();
+                isSimpleEditor = false;
+                initScreen = false;
             }
 
-            var radioEditor = new Ext.form.Radio({fieldLabel: 'Expression editor', name: 'editor', inputValue: 'editor', checked: isSimpleEditor,
-                listeners: {
-                    'check': function(radio, checked) {
-                        if (!isSimpleEditor && checked) {
-                            if (sourceEditor.getValue() == null || sourceEditor.getValue().trim() == "") {
-                                varsCombo.clearValue();
-                                actionsCombo.clearValue();
-                                cleanCurrentInput();
-                                checkRadios(true);
-                            } else {
-                                complexEditor.setValue(sourceEditor.getValue());
-                                parseScript({script: sourceEditor.getValue()});
-                            }
-                        }
-                    }
-                }
-            });
-
-            var radioScript = new Ext.form.Radio({fieldLabel: 'Script editor', name: 'editor', inputValue: 'script', checked: !radioEditor,
-                listeners: {
-                    'check': function(radio, checked) {
-                        if (isSimpleEditor && checked) {
-                            var onsuccess = function(response) {
-                                if(response.responseText.length > 0) {
-                                    var responseJson = Ext.decode(response.responseText);
-                                    if (responseJson.errorMessage) {
-                                        alert(responseJson.errorMessage);
-                                    } else {
-                                        sourceEditor.toTextArea();
-                                        sourceEditor = null;
-                                        complexEditor.setValue(responseJson.script);
-                                        checkRadios(false);
-                                        return;
-                                    }
-                                }
-                                checkRadios(true);
-                            }
-                            var onfailure = function () {
-                                checkRadios(true);
-                            }
-                            var result = generateScript(onsuccess, onfailure);
-                            if (result == false) {
-                                checkRadios(true);
-                            }
-                        }
-                    }
-                }
-            });
-
-            function checkRadios(editor) {
-                isSimpleEditor = editor;
-                if (isSimpleEditor) {
-                    expressionEditorLayout.show();
-                    complexEditorLayout.hide();
-                } else {
-                    expressionEditorLayout.hide();
-                    complexEditorLayout.show();
-                    initCodeEditor();
-                }
-                setDialogTitle(!isSimpleEditor);
-                radioEditor.setValue(isSimpleEditor);
-                radioScript.setValue(!isSimpleEditor);
-            }
-
-            var radios = new Ext.form.FormPanel({
-                defaults: {border:false},
-                items:[{
-                    anchor: '100%', layout:'column', defaults: {border:false},
-                    items:[{
-                        layout: 'form',
-                        items: [radioEditor]
-                    },{
-                        layout: 'form',
-                        items: [radioScript]
-                    }]
-                }]
-
-            });
-
-            contentPanel = new Ext.Panel({
-                layout: 'table',
-                layoutConfig: {
-                    columns: 1
-                },
+            contentPanel = new Ext.TabPanel({
+                renderTo: Ext.getBody(),
+                activeTab: 0,
                 defaults: {
                     border: false
                 },
-                items: [radios, expressionEditorLayout, complexEditorLayout]
+                items: [expressionEditorLayout, scriptEditorLayout],
+                listeners: {
+                    'tabchange': function (tabpanel, tab) {
+                        if (tab.title == "Script") {
+                            if (isSimpleEditor) {
+                                var onsuccess = function(response) {
+                                    isSimpleEditor = true;
+                                    if(response.responseText.length > 0) {
+                                        var responseJson = Ext.decode(response.responseText);
+                                        if (responseJson.errorMessage) {
+                                            alert(responseJson.errorMessage);
+                                        } else {
+                                            sourceEditor.toTextArea();
+                                            sourceEditor = null;
+                                            scriptEditor.setValue(responseJson.script);
+                                            isSimpleEditor = false;
+                                            contentPanel.setActiveTab(scriptEditorLayout);
+                                            initCodeEditor();
+                                            return;
+                                        }
+                                    }
+                                }
+                                var onfailure = function () {
+                                    isSimpleEditor = true;
+                                    contentPanel.setActiveTab(expressionEditorLayout);
+                                }
+                                var result = generateScript(onsuccess, onfailure);
+                                if (result == false) {
+                                    isSimpleEditor = true;
+                                    contentPanel.setActiveTab(expressionEditorLayout);
+                                }
+                            }
+                        } else {
+                            if (!isSimpleEditor) {
+                                if (sourceEditor.getValue() == null || sourceEditor.getValue().trim() == "") {
+                                    varsCombo.clearValue();
+                                    actionsCombo.clearValue();
+                                    cleanCurrentInput();
+                                    isSimpleEditor = true;
+                                } else {
+                                    scriptEditor.setValue(sourceEditor.getValue());
+                                    parseScript({script: sourceEditor.getValue()});
+                                }
+                            }
+                        }
+                    }
+                }
             });
 
             function cleanCurrentInput () {
@@ -4118,7 +4100,7 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                 text: ORYX.I18N.PropertyWindow.ok,
                 handler: function() {
                     if (isJavaCondition) {
-                        if (radioEditor.getValue()) {
+                        if (isSimpleEditor) {
                             generateScript(onsuccessSave, onfailureSave);
                         } else {
                             setFieldValueAndClose(sourceEditor.getValue().replace(/\r\n|\r|\n/g,"\\n"));
@@ -4138,7 +4120,7 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
 
         function initCodeEditor() {
             this.foldFunc = CodeMirror.newFoldFunction(CodeMirror.braceRangeFinder);
-            sourceEditor = CodeMirror.fromTextArea(document.getElementById(complexEditor.getId()), {
+            sourceEditor = CodeMirror.fromTextArea(document.getElementById(scriptEditor.getId()), {
                 mode: "text/x-java",
                 lineNumbers: true,
                 lineWrapping: true,
@@ -4161,14 +4143,20 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
         if (isJavaCondition) {
             if (this.getValue() != null && this.getValue() != "") {
                 parseScript({script:this.getValue()});
-                initScreen = false;
             } else {
-                checkRadios(true)
+                isSimpleEditor = true;
+                contentPanel.setActiveTab(expressionEditorLayout);
+                initScreen = false;
             }
-        } else setDialogTitle(true);
+        } else {
+            setDialogTitle(true);
+        }
 
         dialog.show();
-        initCodeEditor();
+
+        contentPanel.setHeight(dialog.getInnerHeight())
+        if (!isJavaCondition) initCodeEditor();
+
         this.grid.stopEditing();
     }
 });

@@ -3927,8 +3927,10 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                                         if (responseJson.errorMessage) {
                                             alert(responseJson.errorMessage);
                                         } else {
-                                            sourceEditor.toTextArea();
-                                            sourceEditor = null;
+                                            if (sourceEditor) {
+                                                sourceEditor.toTextArea();
+                                                sourceEditor = null;
+                                            }
                                             scriptEditor.setValue(responseJson.script);
                                             isSimpleEditor = false;
                                             contentPanel.setActiveTab(scriptEditorLayout);

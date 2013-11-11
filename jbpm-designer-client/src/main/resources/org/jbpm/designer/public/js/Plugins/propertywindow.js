@@ -3690,56 +3690,56 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
             });
 
             var stringActions = [];
-            stringActions.push(["contains", stringPanel, [0]]);
-            stringActions.push(["endsWith", stringPanel, [0]]);
-            stringActions.push(["equalsTo", stringPanel, [0]]);
-            stringActions.push(["isEmpty", null, null]);
-            stringActions.push(["isNull", null, null]);
-            stringActions.push(["startsWith", stringPanel, [0]]);
+            stringActions.push(["contains", ORYX.I18N.ConditionExpressionEditorField.contains, stringPanel, [0]]);
+            stringActions.push(["endsWith", ORYX.I18N.ConditionExpressionEditorField.endsWith, stringPanel, [0]]);
+            stringActions.push(["equalsTo", ORYX.I18N.ConditionExpressionEditorField.equalsTo, stringPanel, [0]]);
+            stringActions.push(["isEmpty", ORYX.I18N.ConditionExpressionEditorField.isEmpty, null, null]);
+            stringActions.push(["isNull", ORYX.I18N.ConditionExpressionEditorField.isNull, null, null]);
+            stringActions.push(["startsWith", ORYX.I18N.ConditionExpressionEditorField.startsWith, stringPanel, [0]]);
 
             var sActionStore = new Ext.data.SimpleStore({
-                fields: [{name: 'value'},{name: 'panel'}, {name: 'inputs'}],
+                fields: [{name: 'value'},{name: 'title'},{name: 'panel'}, {name: 'inputs'}],
                 data : stringActions
             });
 
             var floatActions = [];
-            floatActions.push(["between", floatPanelRange, [0, 2]]);
-            floatActions.push(["equalsTo", floatPanel, [0]]);
-            floatActions.push(["greaterThan", floatPanel, [0]]);
-            floatActions.push(["greaterOrEqualThan", floatPanel, [0]]);
-            floatActions.push(["isEmpty", null, null]);
-            floatActions.push(["isNull", null, null]);
-            floatActions.push(["lessThan", floatPanel, [0]]);
-            floatActions.push(["lessOrEqualThan", floatPanel, [0]]);
+            floatActions.push(["between", ORYX.I18N.ConditionExpressionEditorField.between, floatPanelRange, [0, 2]]);
+            floatActions.push(["equalsTo", ORYX.I18N.ConditionExpressionEditorField.equalsTo, floatPanel, [0]]);
+            floatActions.push(["greaterThan", ORYX.I18N.ConditionExpressionEditorField.greaterThan, floatPanel, [0]]);
+            floatActions.push(["greaterOrEqualThan", ORYX.I18N.ConditionExpressionEditorField.greaterThanOrEqual, floatPanel, [0]]);
+            floatActions.push(["isEmpty", ORYX.I18N.ConditionExpressionEditorField.isEmpty, null, null]);
+            floatActions.push(["isNull", ORYX.I18N.ConditionExpressionEditorField.isNull, null, null]);
+            floatActions.push(["lessThan", ORYX.I18N.ConditionExpressionEditorField.lessThan, floatPanel, [0]]);
+            floatActions.push(["lessOrEqualThan", ORYX.I18N.ConditionExpressionEditorField.lessThanOrEqual, floatPanel, [0]]);
 
             var fActionStore = new Ext.data.SimpleStore({
-                fields: [{name: 'value'},{name: 'panel'}, {name: 'inputs'}],
+                fields: [{name: 'value'},{name: 'title'},{name: 'panel'}, {name: 'inputs'}],
                 data : floatActions
             });
 
             var integerActions = [];
-            integerActions.push(["between", integerPanelRange, [0, 2]]);
-            integerActions.push(["equalsTo", integerPanel, [0]]);
-            integerActions.push(["greaterThan", integerPanel, [0]]);
-            integerActions.push(["greaterOrEqualThan", integerPanel, [0]]);
-            integerActions.push(["isEmpty", null, null]);
-            integerActions.push(["isNull", null, null]);
-            integerActions.push(["lessThan", integerPanel, [0]]);
-            integerActions.push(["lessOrEqualThan", integerPanel, [0]]);
+            integerActions.push(["between", ORYX.I18N.ConditionExpressionEditorField.between, integerPanelRange, [0, 2]]);
+            integerActions.push(["equalsTo", ORYX.I18N.ConditionExpressionEditorField.equalsTo, integerPanel, [0]]);
+            integerActions.push(["greaterThan", ORYX.I18N.ConditionExpressionEditorField.greaterThan, integerPanel, [0]]);
+            integerActions.push(["greaterOrEqualThan", ORYX.I18N.ConditionExpressionEditorField.greaterThanOrEqual, integerPanel, [0]]);
+            integerActions.push(["isEmpty", ORYX.I18N.ConditionExpressionEditorField.isEmpty, null, null]);
+            integerActions.push(["isNull", ORYX.I18N.ConditionExpressionEditorField.isNull, null, null]);
+            integerActions.push(["lessThan", ORYX.I18N.ConditionExpressionEditorField.lessThan, integerPanel, [0]]);
+            integerActions.push(["lessOrEqualThan", ORYX.I18N.ConditionExpressionEditorField.lessThanOrEqual, integerPanel, [0]]);
 
             var iActionStore = new Ext.data.SimpleStore({
-                fields: [{name: 'value'},{name: 'panel'}, {name: 'inputs'}],
+                fields: [{name: 'value'},{name: 'title'},{name: 'panel'}, {name: 'inputs'}],
                 data : integerActions
             });
 
             var booleanActions = [];
-            booleanActions.push(["isEmpty", null, null]);
-            booleanActions.push(["isFalse", null, null]);
-            booleanActions.push(["isNull", null, null]);
-            booleanActions.push(["isTrue", null, null]);
+            booleanActions.push(["isEmpty", ORYX.I18N.ConditionExpressionEditorField.isEmpty, null, null]);
+            booleanActions.push(["isFalse", ORYX.I18N.ConditionExpressionEditorField.isFalse, null, null]);
+            booleanActions.push(["isNull", ORYX.I18N.ConditionExpressionEditorField.isNull, null, null]);
+            booleanActions.push(["isTrue", ORYX.I18N.ConditionExpressionEditorField.isTrue, null, null]);
 
             var bActionStore = new Ext.data.SimpleStore({
-                fields: [{name: 'value'},{name: 'panel'}, {name: 'inputs'}],
+                fields: [{name: 'value'},{name: 'title'},{name: 'panel'}, {name: 'inputs'}],
                 data : booleanActions
             });
 
@@ -3784,9 +3784,8 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
             });
 
             var actionsCombo = new Ext.form.ComboBox({
-                id: 'VariableActionsCombobox',
                 editable: false,
-                displayField:'value',
+                displayField:'title',
                 valueField: 'value',
                 typeAhead: true,
                 mode: 'local',
@@ -3824,19 +3823,22 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
 
             var expressionEditorLayout = new Ext.Panel({
                 layout:'table',
-                title: 'Editor',
+                title: ORYX.I18N.ConditionExpressionEditorField.editorTab,
+                style: 'padding: 2px;',
                 layoutConfig: {
-                    columns: 2
+                    columns: 3
                 },
                 defaults: {
                     border:false
                 },
-                items: [varsCombo, actionsCombo,
-                    {colspan:2, items: [stringPanel, floatPanel, floatPanelRange, integerPanel, integerPanelRange]}]
+                items: [
+                    {colspan: 3, html: ORYX.I18N.ConditionExpressionEditorField.editorDescription},
+                    varsCombo, actionsCombo,
+                    {items: [stringPanel, floatPanel, floatPanelRange, integerPanel, integerPanelRange]}]
             });
 
             var scriptEditorLayout = new Ext.Panel({
-                title: 'Script',
+                title: ORYX.I18N.ConditionExpressionEditorField.scriptTab,
                 layout:'card',
                 defaults: {
                     border:false
@@ -3886,6 +3888,7 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                             }
                         }
                         isSimpleEditor = true;
+                        dialog.setTitle(ORYX.I18N.ConditionExpressionEditorField.sequenceFlowTitle);
                     }
                 }
                 initScreen = false;
@@ -3915,7 +3918,7 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                 items: [expressionEditorLayout, scriptEditorLayout],
                 listeners: {
                     'tabchange': function (tabpanel, tab) {
-                        if (tab.title == "Script") {
+                        if (tab.title == ORYX.I18N.ConditionExpressionEditorField.scriptTab) {
                             if (isSimpleEditor) {
                                 var onsuccess = function(response) {
                                     isSimpleEditor = true;
@@ -3929,6 +3932,7 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                                             scriptEditor.setValue(responseJson.script);
                                             isSimpleEditor = false;
                                             contentPanel.setActiveTab(scriptEditorLayout);
+                                            dialog.setTitle(ORYX.I18N.ConditionExpressionEditorField.sequenceFlowFullTitle);
                                             initCodeEditor();
                                             return;
                                         }
@@ -3951,6 +3955,7 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                                     actionsCombo.clearValue();
                                     cleanCurrentInput();
                                     isSimpleEditor = true;
+                                    dialog.setTitle(ORYX.I18N.ConditionExpressionEditorField.sequenceFlowTitle);
                                 } else {
                                     scriptEditor.setValue(sourceEditor.getValue());
                                     parseScript({script: sourceEditor.getValue()});
@@ -4135,21 +4140,17 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
             hlLine = sourceEditor.setLineClass(0, "activeline");
         }
 
-        function setDialogTitle(complexEditor) {
-            if (complexEditor) dialog.setTitle("Expression Editor - Press [Ctrl-Z] to activate auto-completion");
-            else dialog.setTitle("Expression Editor");
-        }
-
         if (isJavaCondition) {
             if (this.getValue() != null && this.getValue() != "") {
                 parseScript({script:this.getValue()});
             } else {
                 isSimpleEditor = true;
+                dialog.setTitle(ORYX.I18N.ConditionExpressionEditorField.sequenceFlowTitle);
                 contentPanel.setActiveTab(expressionEditorLayout);
                 initScreen = false;
             }
         } else {
-            setDialogTitle(true);
+            dialog.setTitle(ORYX.I18N.ConditionExpressionEditorField.simpleTitle);
         }
 
         dialog.show();

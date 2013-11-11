@@ -294,6 +294,28 @@ ORYX.I18N.PropertyWindow.ok = "Ок";
 ORYX.I18N.PropertyWindow.cancel = "Отменить";
 ORYX.I18N.PropertyWindow.dateFormat = "m/d/y";
 
+if (!ORYX.I18N.ConditionExpressionEditorField) ORYX.I18N.ConditionExpressionEditorField = {};
+
+ORYX.I18N.ConditionExpressionEditorField.simpleTitle = "Expression Editor - Press [Ctrl-Z] to activate auto-completion";
+ORYX.I18N.ConditionExpressionEditorField.sequenceFlowTitle = "Sequence Flow Conditions";
+ORYX.I18N.ConditionExpressionEditorField.sequenceFlowFullTitle = "Sequence Flow Conditions - Press [Ctrl-Z] to activate auto-completion";
+ORYX.I18N.ConditionExpressionEditorField.scriptTab = "Script";
+ORYX.I18N.ConditionExpressionEditorField.editorTab = "Editor";
+ORYX.I18N.ConditionExpressionEditorField.editorDescription = "Run sequence flow if the following conditions are met."
+ORYX.I18N.ConditionExpressionEditorField.between = "Between";
+ORYX.I18N.ConditionExpressionEditorField.contains = "Contains";
+ORYX.I18N.ConditionExpressionEditorField.endsWith = "Ends with";
+ORYX.I18N.ConditionExpressionEditorField.equalsTo = "Is equals to";
+ORYX.I18N.ConditionExpressionEditorField.greaterThan = "Greater than";
+ORYX.I18N.ConditionExpressionEditorField.greaterThanOrEqual = "Greater than or equal";
+ORYX.I18N.ConditionExpressionEditorField.isEmpty = "Is empty";
+ORYX.I18N.ConditionExpressionEditorField.isFalse = "Is false";
+ORYX.I18N.ConditionExpressionEditorField.isNull = "Is null";
+ORYX.I18N.ConditionExpressionEditorField.isTrue = "Is true";
+ORYX.I18N.ConditionExpressionEditorField.lessThan = "Less than";
+ORYX.I18N.ConditionExpressionEditorField.lessThanOrEqual = "Less than or equal";
+ORYX.I18N.ConditionExpressionEditorField.startsWith = "Starts with";
+
 if(!ORYX.I18N.ShapeMenuPlugin) ORYX.I18N.ShapeMenuPlugin = {};
 
 ORYX.I18N.ShapeMenuPlugin.drag = "Тянуть";

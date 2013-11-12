@@ -257,6 +257,11 @@
       <param-value>bpmn2.0jbpm</param-value>
     </init-param>
   </servlet>
+  <servlet>
+    <display-name>ExpressionEditorServlet</display-name>
+      <servlet-name>ExpressionEditorServlet</servlet-name>
+      <servlet-class>org.jbpm.designer.expressioneditor.server.ExpressionEditorServlet</servlet-class>
+    </servlet>
   <servlet-mapping>
     <servlet-name>ResourceList</servlet-name>
     <url-pattern>/resourceList</url-pattern>
@@ -360,6 +365,10 @@
   <servlet-mapping>
     <servlet-name>StencilSetServiceServlet</servlet-name>
     <url-pattern>/stencilset/*</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>ExpressionEditorServlet</servlet-name>
+    <url-pattern>/expressioneditor/*</url-pattern>
   </servlet-mapping>
   <!-- the number within the session-timout element must be expressed in
 minutes. it is now 24 hours. -->

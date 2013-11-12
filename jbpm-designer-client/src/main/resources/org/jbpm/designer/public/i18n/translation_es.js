@@ -295,7 +295,9 @@ ORYX.I18N.ConditionExpressionEditorField.sequenceFlowTitle = "Sequence Flow Cond
 ORYX.I18N.ConditionExpressionEditorField.sequenceFlowFullTitle = "Sequence Flow Conditions - Pulse [Ctrl-Z] para activar auto-completar";
 ORYX.I18N.ConditionExpressionEditorField.scriptTab = "Script";
 ORYX.I18N.ConditionExpressionEditorField.editorTab = "Editor";
-ORYX.I18N.ConditionExpressionEditorField.editorDescription = "Run sequence flow if the following conditions are met."
+ORYX.I18N.ConditionExpressionEditorField.editorDescription = "Ejecuta flujo si se cumplen las siguientes condiciones."
+ORYX.I18N.ConditionExpressionEditorField.processVariable = "Variable del proceso::"
+ORYX.I18N.ConditionExpressionEditorField.condition = "Condición:"
 ORYX.I18N.ConditionExpressionEditorField.between = "Entre";
 ORYX.I18N.ConditionExpressionEditorField.contains = "Contiene";
 ORYX.I18N.ConditionExpressionEditorField.endsWith = "Termina con";
@@ -309,6 +311,8 @@ ORYX.I18N.ConditionExpressionEditorField.isTrue = "Es verdadero";
 ORYX.I18N.ConditionExpressionEditorField.lessThan = "Menor que";
 ORYX.I18N.ConditionExpressionEditorField.lessThanOrEqual = "Menor o igual que";
 ORYX.I18N.ConditionExpressionEditorField.startsWith = "Empieza con";
+ORYX.I18N.ConditionExpressionEditorField.paramsError = "Por favor rellene los campos correctamente.";
+ORYX.I18N.ConditionExpressionEditorField.saveError = "Unable to save property value, please check the value and try again.";
 
 if(!ORYX.I18N.ShapeMenuPlugin) ORYX.I18N.ShapeMenuPlugin = {};
 

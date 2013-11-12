@@ -412,6 +412,8 @@ ORYX.I18N.ConditionExpressionEditorField.sequenceFlowFullTitle = "Sequence Flow 
 ORYX.I18N.ConditionExpressionEditorField.scriptTab = "Script";
 ORYX.I18N.ConditionExpressionEditorField.editorTab = "Editor";
 ORYX.I18N.ConditionExpressionEditorField.editorDescription = "Run sequence flow if the following conditions are met."
+ORYX.I18N.ConditionExpressionEditorField.processVariable = "Process variable:"
+ORYX.I18N.ConditionExpressionEditorField.condition = "Condition:"
 ORYX.I18N.ConditionExpressionEditorField.between = "Between";
 ORYX.I18N.ConditionExpressionEditorField.contains = "Contains";
 ORYX.I18N.ConditionExpressionEditorField.endsWith = "Ends with";
@@ -425,6 +427,8 @@ ORYX.I18N.ConditionExpressionEditorField.isTrue = "Is true";
 ORYX.I18N.ConditionExpressionEditorField.lessThan = "Less than";
 ORYX.I18N.ConditionExpressionEditorField.lessThanOrEqual = "Less than or equal";
 ORYX.I18N.ConditionExpressionEditorField.startsWith = "Starts with";
+ORYX.I18N.ConditionExpressionEditorField.paramsError = "Please fill correctly the form params.";
+ORYX.I18N.ConditionExpressionEditorField.saveError = "No se ha podido guardar la propiedad, por favor revise el valor configurado y pruebe otra vez";
 
 if(!ORYX.I18N.ShapeMenuPlugin) ORYX.I18N.ShapeMenuPlugin = {};
 

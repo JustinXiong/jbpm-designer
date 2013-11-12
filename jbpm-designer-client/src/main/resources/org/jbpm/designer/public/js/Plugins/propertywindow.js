@@ -3666,27 +3666,30 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
 
             var stringPanel = new Ext.Panel({
                 layout:'column', border:false,
+                style: 'margin-left:10px;display:block;',
                 items:[new Ext.form.TextField({name: "stringValue"})]
             });
             var floatPanel = new Ext.Panel({
                 layout:'column', border:false,
+                style: 'margin-left:10px;display:block;',
                 items:[new Ext.form.NumberField({name: "floatValue", allowDecimals: true})]
             });
             var floatPanelRange = new Ext.Panel({
                 layout:'column', border:false,
+                style: 'margin-left:10px;display:block;',
                 items:[new Ext.form.NumberField({name: "floatFrom", allowDecimals: true}),
-                    {html: '&nbsp;-&nbsp;', border:false},
-                    new Ext.form.NumberField({name: "floatTo", allowDecimals: true})]
+                    new Ext.form.NumberField({name: "floatTo", allowDecimals: true, style: 'margin-left:10px;display:block;'})]
             });
             var integerPanel = new Ext.Panel({
                 layout:'column', border:false,
+                style: 'margin-left:10px;display:block;',
                 items:[new Ext.form.NumberField({name: "intValue", allowDecimals: false})]
             });
             var integerPanelRange = new Ext.Panel({
                 layout:'column', border:false,
+                style: 'margin-left:10px;display:block;',
                 items:[new Ext.form.NumberField({name: "intForm", allowDecimals: false}),
-                    {html: '&nbsp;-&nbsp;', border:false},
-                    new Ext.form.NumberField({name: "intTo", allowDecimals: false})]
+                    new Ext.form.NumberField({name: "intTo", allowDecimals: false, style: 'margin-left:10px;display:block;'})]
             });
 
             var stringActions = [];
@@ -3703,7 +3706,7 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
             });
 
             var floatActions = [];
-            floatActions.push(["between", ORYX.I18N.ConditionExpressionEditorField.between, floatPanelRange, [0, 2]]);
+            floatActions.push(["between", ORYX.I18N.ConditionExpressionEditorField.between, floatPanelRange, [0, 1]]);
             floatActions.push(["equalsTo", ORYX.I18N.ConditionExpressionEditorField.equalsTo, floatPanel, [0]]);
             floatActions.push(["greaterThan", ORYX.I18N.ConditionExpressionEditorField.greaterThan, floatPanel, [0]]);
             floatActions.push(["greaterOrEqualThan", ORYX.I18N.ConditionExpressionEditorField.greaterThanOrEqual, floatPanel, [0]]);
@@ -3718,7 +3721,7 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
             });
 
             var integerActions = [];
-            integerActions.push(["between", ORYX.I18N.ConditionExpressionEditorField.between, integerPanelRange, [0, 2]]);
+            integerActions.push(["between", ORYX.I18N.ConditionExpressionEditorField.between, integerPanelRange, [0, 1]]);
             integerActions.push(["equalsTo", ORYX.I18N.ConditionExpressionEditorField.equalsTo, integerPanel, [0]]);
             integerActions.push(["greaterThan", ORYX.I18N.ConditionExpressionEditorField.greaterThan, integerPanel, [0]]);
             integerActions.push(["greaterOrEqualThan", ORYX.I18N.ConditionExpressionEditorField.greaterThanOrEqual, integerPanel, [0]]);
@@ -3741,6 +3744,14 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
             var bActionStore = new Ext.data.SimpleStore({
                 fields: [{name: 'value'},{name: 'title'},{name: 'panel'}, {name: 'inputs'}],
                 data : booleanActions
+            });
+
+            var objectActions = [];
+            objectActions.push(["isNull", ORYX.I18N.ConditionExpressionEditorField.isNull, null, null]);
+
+            var oActionStore = new Ext.data.SimpleStore({
+                fields: [{name: 'value'},{name: 'title'},{name: 'panel'}, {name: 'inputs'}],
+                data : objectActions
             });
 
             stringPanel.hide();
@@ -3767,10 +3778,19 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                                         break;
                                     case "Integer": processVars.push([innerParts[0], innerParts[1], iActionStore]);
                                         break;
+                                    case "java.math.BigInteger": processVars.push([innerParts[0], innerParts[1], iActionStore]);
+                                        break;
+                                    case "java.lang.Long": processVars.push([innerParts[0], innerParts[1], iActionStore]);
+                                        break;
                                     case "Float": processVars.push([innerParts[0], innerParts[1], fActionStore]);
+                                        break;
+                                    case "java.math.BigDecimal": processVars.push([innerParts[0], innerParts[1], fActionStore]);
+                                        break;
+                                    case "java.lang.Double": processVars.push([innerParts[0], innerParts[1], fActionStore]);
                                         break;
                                     case "Boolean": processVars.push([innerParts[0], innerParts[1], bActionStore]);
                                         break;
+                                    default: processVars.push([innerParts[0], innerParts[1], oActionStore]);
                                 }
                             }
                         }
@@ -3821,10 +3841,9 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                 }
             });
 
-            var expressionEditorLayout = new Ext.Panel({
+            var expressionEditorLayout =  new Ext.form.FormPanel({
                 layout:'table',
                 title: ORYX.I18N.ConditionExpressionEditorField.editorTab,
-                style: 'padding: 2px;',
                 layoutConfig: {
                     columns: 3
                 },
@@ -3832,14 +3851,27 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                     border:false
                 },
                 items: [
-                    {colspan: 3, html: ORYX.I18N.ConditionExpressionEditorField.editorDescription},
-                    varsCombo, actionsCombo,
-                    {items: [stringPanel, floatPanel, floatPanelRange, integerPanel, integerPanelRange]}]
+                    {colspan: 3, items:[{
+                        style: 'font-size:12px;margin:10px;display:block;',
+                        anchor: '100%',
+                        xtype: 'label',
+                        html: ORYX.I18N.ConditionExpressionEditorField.editorDescription}
+                    ]},
+                    {
+                        style: 'font-size:12px;margin:10px;display:block;',
+                        anchor: '100%',
+                        xtype: 'label',
+                        html: ORYX.I18N.ConditionExpressionEditorField.processVariable}, {colspan: 2, items:[varsCombo]},
+                    {
+                        style: 'font-size:12px;margin:10px;display:block;',
+                        anchor: '100%',
+                        xtype: 'label',
+                        html: ORYX.I18N.ConditionExpressionEditorField.condition}, actionsCombo, {layout: 'column', items: [stringPanel, floatPanel, floatPanelRange, integerPanel, integerPanelRange]}]
             });
 
             var scriptEditorLayout = new Ext.Panel({
                 title: ORYX.I18N.ConditionExpressionEditorField.scriptTab,
-                layout:'card',
+                layout:'anchor',
                 defaults: {
                     border:false
                 },
@@ -4056,7 +4088,7 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
             function generateScript(onsuccess, onfailure) {
                 var param = generateScriptParams();
                 if (!param) {
-                    alert("Please fill correctly the form params");
+                    alert(ORYX.I18N.ConditionExpressionEditorField.paramsError);
                     return false;
                 }
                 ajaxRequest("generateScript", param, onsuccess, onfailure);
@@ -4074,7 +4106,7 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
             }
 
             var onfailureSave = function() {
-                alert("Undefined Error")
+                alert(ORYX.I18N.ConditionExpressionEditorField.saveError)
             }
         }
 
@@ -4082,7 +4114,7 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
             layout		: 'anchor',
             autoCreate	: true,
             height		: 430,
-            width		: 550,
+            width		: 660,
             modal		: true,
             collapsible	: false,
             fixedcenter	: true,

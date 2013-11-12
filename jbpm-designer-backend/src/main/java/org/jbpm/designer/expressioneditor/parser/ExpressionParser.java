@@ -29,7 +29,7 @@ public class ExpressionParser {
 
     private static final String VARIABLE_NAME_PARAM_REGEX = "[$_a-zA-Z][$_a-zA-Z0-9]*";
 
-    public static final String KIE_FUNCTIONS = "kfunctions.";
+    public static final String KIE_FUNCTIONS = "KieFunctions.";
 
     private static Map<String, FunctionDef> functionsRegistry = new HashMap<String, FunctionDef>();
 

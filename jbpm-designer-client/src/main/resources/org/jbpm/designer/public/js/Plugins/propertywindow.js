@@ -3774,18 +3774,17 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                             if(nextPart.indexOf(":") > 0) {
                                 var innerParts = nextPart.split(":");
                                 switch (innerParts[1]) {
-                                    case "String": processVars.push([innerParts[0], innerParts[1], sActionStore]);
+                                    case "String":
+                                    case "java.lang.String": processVars.push([innerParts[0], innerParts[1], sActionStore]);
                                         break;
-                                    case "Integer": processVars.push([innerParts[0], innerParts[1], iActionStore]);
-                                        break;
-                                    case "java.math.BigInteger": processVars.push([innerParts[0], innerParts[1], iActionStore]);
-                                        break;
+                                    case "Integer":
+                                    case "java.math.BigInteger":
+                                    case "java.lang.Short":
                                     case "java.lang.Long": processVars.push([innerParts[0], innerParts[1], iActionStore]);
                                         break;
-                                    case "Float": processVars.push([innerParts[0], innerParts[1], fActionStore]);
-                                        break;
-                                    case "java.math.BigDecimal": processVars.push([innerParts[0], innerParts[1], fActionStore]);
-                                        break;
+                                    case "Float":
+                                    case "java.math.BigDecimal":
+                                    case "java.lang.Float":
                                     case "java.lang.Double": processVars.push([innerParts[0], innerParts[1], fActionStore]);
                                         break;
                                     case "Boolean": processVars.push([innerParts[0], innerParts[1], bActionStore]);
@@ -3882,8 +3881,19 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                 if(response.responseText.length > 0) {
                     var responseJson = Ext.decode(response.responseText);
                     if (responseJson.errorMessage) {
-                        if (!initScreen) alert(responseJson.errorMessage);
-                        isSimpleEditor = false;
+                        if (!initScreen) {
+                            var errorMessage = ORYX.I18N.ConditionExpressionEditorField.scriptParseError;
+                            errorMessage = errorMessage.replace("{0}", responseJson.errorMessage);
+                            var changeTab = confirm(errorMessage);
+                            if (changeTab) {
+                                clearExpressionEditor();
+                                isSimpleEditor = true;
+                            } else {
+                                isSimpleEditor = false;
+                            }
+                        } else {
+                            isSimpleEditor = false;
+                        }
                     } else {
                         var action;
                         var variable;
@@ -3896,35 +3906,47 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                             });
                         });
                         varsCombo.setValue(variable);
-
                         var index = varsStore.find('value', variable);
-                        var varRecord = varsStore.getAt(index);
-                        varsCombo.fireEvent('select', varsCombo, varRecord);
+                        if (index == -1) {
+                            var errorMessage = ORYX.I18N.ConditionExpressionEditorField.scriptParseError;
+                            errorMessage = errorMessage.replace("{0}", ORYX.I18N.ConditionExpressionEditorField.nonExistingVariable);
+                            errorMessage = errorMessage.replace("{0}", variable);
+                            var changeTab = confirm(errorMessage);
+                            if (changeTab) {
+                                clearExpressionEditor();
+                                isSimpleEditor = true;
+                            } else {
+                                isSimpleEditor = false;
+                            }
+                        } else {
+                            var varRecord = varsStore.getAt(index);
+                            varsCombo.fireEvent('select', varsCombo, varRecord);
 
-                        actionsCombo.setValue(action);
-                        var actionStore = varRecord.get("store");
+                            actionsCombo.setValue(action);
+                            var actionStore = varRecord.get("store");
 
-                        index = actionStore.find('value', action);
-                        var actionRecord = actionStore.getAt(index);
-                        actionsCombo.fireEvent('select', actionsCombo, actionRecord);
+                            index = actionStore.find('value', action);
+                            var actionRecord = actionStore.getAt(index);
+                            actionsCombo.fireEvent('select', actionsCombo, actionRecord);
 
-                        var panel = actionRecord.get("panel");
+                            var panel = actionRecord.get("panel");
 
-                        if (panel != null) {
-                            var inputs = actionRecord.get("inputs");
-                            if (inputs != null && inputs.length == params.length) {
-                                var i;
-                                for (i = 0; i< inputs.length; i++) {
-                                    var value = panel.getComponent(inputs[i]).setValue(params[i]);
+                            if (panel != null) {
+                                var inputs = actionRecord.get("inputs");
+                                if (inputs != null && inputs.length == params.length) {
+                                    var i;
+                                    for (i = 0; i< inputs.length; i++) {
+                                        var value = panel.getComponent(inputs[i]).setValue(params[i]);
+                                    }
                                 }
                             }
+                            isSimpleEditor = true;
                         }
-                        isSimpleEditor = true;
-                        dialog.setTitle(ORYX.I18N.ConditionExpressionEditorField.sequenceFlowTitle);
                     }
                 }
                 initScreen = false;
                 if (isSimpleEditor) {
+                    dialog.setTitle(ORYX.I18N.ConditionExpressionEditorField.sequenceFlowTitle);
                     contentPanel.setActiveTab(expressionEditorLayout);
                 } else {
                     contentPanel.setActiveTab(scriptEditorLayout);
@@ -3999,6 +4021,12 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                     }
                 }
             });
+
+            function clearExpressionEditor() {
+                varsCombo.clearValue();
+                actionsCombo.clearValue();
+                cleanCurrentInput();
+            }
 
             function cleanCurrentInput () {
                 if (currentInputRecord != null) {
@@ -4114,7 +4142,7 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
             layout		: 'anchor',
             autoCreate	: true,
             height		: 430,
-            width		: 660,
+            width		: 680,
             modal		: true,
             collapsible	: false,
             fixedcenter	: true,

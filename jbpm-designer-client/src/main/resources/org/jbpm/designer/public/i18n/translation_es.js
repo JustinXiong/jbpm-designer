@@ -313,6 +313,8 @@ ORYX.I18N.ConditionExpressionEditorField.lessThanOrEqual = "Menor o igual que";
 ORYX.I18N.ConditionExpressionEditorField.startsWith = "Empieza con";
 ORYX.I18N.ConditionExpressionEditorField.paramsError = "Por favor rellene los campos correctamente.";
 ORYX.I18N.ConditionExpressionEditorField.saveError = "Unable to save property value, please check the value and try again.";
+ORYX.I18N.ConditionExpressionEditorField.scriptParseError = "Se ha encontrado un error parseando el script: \n '{0}'\nPulse OK para quedarse en el Editor de Expresiones y perder el Script o Cancelar para volver al Editor de Scripts.";
+ORYX.I18N.ConditionExpressionEditorField.nonExistingVariable = "El proceso no contiene ninguna variable llamada '{0}'.";
 
 if(!ORYX.I18N.ShapeMenuPlugin) ORYX.I18N.ShapeMenuPlugin = {};
 

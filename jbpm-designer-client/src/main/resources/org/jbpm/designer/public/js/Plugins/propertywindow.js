@@ -3710,7 +3710,6 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
             floatActions.push(["equalsTo", ORYX.I18N.ConditionExpressionEditorField.equalsTo, floatPanel, [0]]);
             floatActions.push(["greaterThan", ORYX.I18N.ConditionExpressionEditorField.greaterThan, floatPanel, [0]]);
             floatActions.push(["greaterOrEqualThan", ORYX.I18N.ConditionExpressionEditorField.greaterThanOrEqual, floatPanel, [0]]);
-            floatActions.push(["isEmpty", ORYX.I18N.ConditionExpressionEditorField.isEmpty, null, null]);
             floatActions.push(["isNull", ORYX.I18N.ConditionExpressionEditorField.isNull, null, null]);
             floatActions.push(["lessThan", ORYX.I18N.ConditionExpressionEditorField.lessThan, floatPanel, [0]]);
             floatActions.push(["lessOrEqualThan", ORYX.I18N.ConditionExpressionEditorField.lessThanOrEqual, floatPanel, [0]]);
@@ -3725,7 +3724,6 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
             integerActions.push(["equalsTo", ORYX.I18N.ConditionExpressionEditorField.equalsTo, integerPanel, [0]]);
             integerActions.push(["greaterThan", ORYX.I18N.ConditionExpressionEditorField.greaterThan, integerPanel, [0]]);
             integerActions.push(["greaterOrEqualThan", ORYX.I18N.ConditionExpressionEditorField.greaterThanOrEqual, integerPanel, [0]]);
-            integerActions.push(["isEmpty", ORYX.I18N.ConditionExpressionEditorField.isEmpty, null, null]);
             integerActions.push(["isNull", ORYX.I18N.ConditionExpressionEditorField.isNull, null, null]);
             integerActions.push(["lessThan", ORYX.I18N.ConditionExpressionEditorField.lessThan, integerPanel, [0]]);
             integerActions.push(["lessOrEqualThan", ORYX.I18N.ConditionExpressionEditorField.lessThanOrEqual, integerPanel, [0]]);
@@ -3736,7 +3734,6 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
             });
 
             var booleanActions = [];
-            booleanActions.push(["isEmpty", ORYX.I18N.ConditionExpressionEditorField.isEmpty, null, null]);
             booleanActions.push(["isFalse", ORYX.I18N.ConditionExpressionEditorField.isFalse, null, null]);
             booleanActions.push(["isNull", ORYX.I18N.ConditionExpressionEditorField.isNull, null, null]);
             booleanActions.push(["isTrue", ORYX.I18N.ConditionExpressionEditorField.isTrue, null, null]);
@@ -3778,6 +3775,7 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                                     case "java.lang.String": processVars.push([innerParts[0], innerParts[1], sActionStore]);
                                         break;
                                     case "Integer":
+                                    case "java.lang.Integer":
                                     case "java.math.BigInteger":
                                     case "java.lang.Short":
                                     case "java.lang.Long": processVars.push([innerParts[0], innerParts[1], iActionStore]);
@@ -3787,7 +3785,8 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                                     case "java.lang.Float":
                                     case "java.lang.Double": processVars.push([innerParts[0], innerParts[1], fActionStore]);
                                         break;
-                                    case "Boolean": processVars.push([innerParts[0], innerParts[1], bActionStore]);
+                                    case "Boolean":
+                                    case "java.lang.Boolean": processVars.push([innerParts[0], innerParts[1], bActionStore]);
                                         break;
                                     default: processVars.push([innerParts[0], innerParts[1], oActionStore]);
                                 }

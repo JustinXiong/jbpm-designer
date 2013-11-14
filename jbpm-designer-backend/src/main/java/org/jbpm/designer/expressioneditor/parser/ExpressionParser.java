@@ -19,9 +19,10 @@ package org.jbpm.designer.expressioneditor.parser;
 import org.jbpm.designer.expressioneditor.model.Condition;
 import org.jbpm.designer.expressioneditor.model.ConditionExpression;
 
+import java.text.MessageFormat;
 import java.text.ParseException;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,11 +32,35 @@ public class ExpressionParser {
 
     public static final String KIE_FUNCTIONS = "KieFunctions.";
 
-    private static Map<String, FunctionDef> functionsRegistry = new HashMap<String, FunctionDef>();
+    private static Map<String, FunctionDef> functionsRegistry = new TreeMap<String, FunctionDef>();
 
     private int parseIndex = 0;
 
     private String expression;
+
+    private String functionName = null;
+
+    public static final String FUNCTION_NAME_NOT_RECOGNIZED_ERROR = "The function name {0} is not recognized by system.";
+
+    public static final String FUNCTION_CALL_NOT_FOUND_ERROR = "Function call was not found, a token like " + KIE_FUNCTIONS + "functionName(variable, params) is expected.";
+
+    public static final String VALID_FUNCTION_CALL_NOT_FOUND_ERROR = "The " + KIE_FUNCTIONS + " key word must be followed by one of the following function names: {0}";
+
+    public static final String FUNCTION_CALL_NOT_CLOSED_PROPERLY_ERROR = "Function call {0} is not closed properly, character ) is expected.";
+
+    public static final String SENTENCE_NOT_CLOSED_PROPERLY_ERROR = "Script not closed properly, character ; is expected.";
+
+    public static final String VARIABLE_NAME_EXPECTED_ERROR = "Variable name not found, a process variable name is expected.";
+
+    public static final String PARAMETER_DELIMITER_EXPECTED_ERROR = "Parameter delimiter character , is expected.";
+
+    public static final String STRING_PARAMETER_EXPECTED_ERROR = "String parameter value like \"some value\" is expected.";
+
+    public static final String RETURN_SENTENCE_EXPECTED_ERROR = "Sentence {0} is expected.";
+
+    public static final String BLANK_AFTER_RETURN_EXPECTED_ERROR = "Sentence {0} must be followed by a blank space or a line break.";
+
+    private static String functionNames = null;
 
     static {
 
@@ -112,6 +137,16 @@ public class ExpressionParser {
         isFalse.addParam("param1", Object.class);
         functionsRegistry.put(isFalse.getName(), isFalse);
 
+        StringBuilder functionNamesBuilder = new StringBuilder();
+        functionNamesBuilder.append("{");
+        boolean first = true;
+        for (String functionName : functionsRegistry.keySet()) {
+            if (!first) functionNamesBuilder.append(", ");
+            functionNamesBuilder.append(functionName);
+            first = false;
+        }
+        functionNamesBuilder.append("}");
+        functionNames = functionNamesBuilder.toString();
     }
 
     public ExpressionParser(String expression) {
@@ -123,7 +158,6 @@ public class ExpressionParser {
 
         ConditionExpression conditionExpression = new ConditionExpression();
         Condition condition = null;
-        String functionName = null;
         FunctionDef functionDef = null;
 
         parseReturnSentence();
@@ -132,7 +166,7 @@ public class ExpressionParser {
         functionName = functionName.substring(KIE_FUNCTIONS.length(), functionName.length());
         functionDef = functionsRegistry.get(functionName);
 
-        if (functionDef == null) throw new ParseException("undefined function: " + functionName, parseIndex);
+        if (functionDef == null) throw new ParseException(errorMessage(FUNCTION_NAME_NOT_RECOGNIZED_ERROR, functionName), parseIndex);
 
         conditionExpression.setOperator(ConditionExpression.AND_OPERATOR);
         condition = new Condition(functionName);
@@ -167,17 +201,17 @@ public class ExpressionParser {
     private String parseReturnSentence() throws ParseException {
 
         int index = nextNonBlank();
-        if (index < 0) throw new ParseException("return sentence was not found.", parseIndex);
+        if (index < 0) throw new ParseException(errorMessage(RETURN_SENTENCE_EXPECTED_ERROR, "return"), parseIndex);
 
         if (!expression.startsWith("return", index)) {
             //the expression does not start with return.
-            throw new ParseException("return sentence was not found.", parseIndex);
+            throw new ParseException(errorMessage(RETURN_SENTENCE_EXPECTED_ERROR, "return"), parseIndex);
         }
 
         parseIndex = index + "return".length();
 
         //next character after return must be a \n or a " "
-        if (!isBlank(expression.charAt(parseIndex))) throw new ParseException("return sentece must be followed by a blank space or a line break.", parseIndex);
+        if (!isBlank(expression.charAt(parseIndex))) throw new ParseException(errorMessage(BLANK_AFTER_RETURN_EXPECTED_ERROR, "return"), parseIndex);
 
         return "return";
     }
@@ -185,9 +219,10 @@ public class ExpressionParser {
     private String parseFunctionName() throws ParseException {
 
         int index = nextNonBlank();
-        if (index < 0) throw new ParseException("function call not found", parseIndex);
-
+        if (index < 0) throw new ParseException(errorMessage(FUNCTION_CALL_NOT_FOUND_ERROR), parseIndex);
         String functionName = null;
+
+        if (!expression.startsWith(KIE_FUNCTIONS, index)) throw new ParseException(errorMessage(FUNCTION_CALL_NOT_FOUND_ERROR), parseIndex);
 
         for(FunctionDef functionDef : functionsRegistry.values()) {
             if (expression.startsWith(KIE_FUNCTIONS+functionDef.getName()+"(", index)) {
@@ -196,7 +231,7 @@ public class ExpressionParser {
             }
         }
 
-        if (functionName == null) throw new ParseException("function call not found", parseIndex);
+        if (functionName == null) throw new ParseException(errorMessage(VALID_FUNCTION_CALL_NOT_FOUND_ERROR, functionNames()), parseIndex);
 
         parseIndex = index + functionName.length() +1;
 
@@ -205,9 +240,9 @@ public class ExpressionParser {
 
     private String parseFunctionClose() throws ParseException {
         int index = nextNonBlank();
-        if (index < 0) throw new ParseException("function call not closed properly", parseIndex);
+        if (index < 0) throw new ParseException(errorMessage(FUNCTION_CALL_NOT_CLOSED_PROPERLY_ERROR, functionName), parseIndex);
 
-        if (expression.charAt(index) != ')') throw new ParseException("function call not closed properly", parseIndex);
+        if (expression.charAt(index) != ')') throw new ParseException(errorMessage(FUNCTION_CALL_NOT_CLOSED_PROPERLY_ERROR, functionName), parseIndex);
 
         parseIndex = index +1;
         return ")";
@@ -215,13 +250,13 @@ public class ExpressionParser {
 
     private String parseSentenceClose() throws ParseException {
         int index = nextNonBlank();
-        if (index < 0) throw new ParseException("sentence not closed properly", parseIndex);
+        if (index < 0) throw new ParseException(errorMessage(SENTENCE_NOT_CLOSED_PROPERLY_ERROR), parseIndex);
 
-        if (expression.charAt(index) != ';') throw new ParseException("sentence not closed properly", parseIndex);
+        if (expression.charAt(index) != ';') throw new ParseException(errorMessage(SENTENCE_NOT_CLOSED_PROPERLY_ERROR), parseIndex);
 
         parseIndex = index +1;
         while (parseIndex < expression.length()) {
-            if (!isBlank(expression.charAt(parseIndex))) throw new ParseException("sentence not closed properly", parseIndex);
+            if (!isBlank(expression.charAt(parseIndex))) throw new ParseException(errorMessage(SENTENCE_NOT_CLOSED_PROPERLY_ERROR), parseIndex);
             parseIndex++;
         }
 
@@ -230,16 +265,18 @@ public class ExpressionParser {
 
     private String parseVariableName() throws ParseException {
         int index = nextNonBlank();
-        if (index < 0) throw new ParseException("variableName not found", parseIndex);
+        if (index < 0) throw new ParseException(errorMessage(VARIABLE_NAME_EXPECTED_ERROR), parseIndex);
 
         Pattern variableNameParam = Pattern.compile(VARIABLE_NAME_PARAM_REGEX);
         Matcher variableMatcher = variableNameParam.matcher(expression.substring(index, expression.length()));
+
+        if (!Pattern.matches(VARIABLE_NAME_PARAM_REGEX, String.valueOf(expression.charAt(index)))) throw new ParseException(errorMessage(VARIABLE_NAME_EXPECTED_ERROR), parseIndex);
 
         String variableName = null;
         if (variableMatcher.find()) {
             variableName = variableMatcher.group();
         } else {
-            throw new ParseException("variableName not found", parseIndex);
+            throw new ParseException(errorMessage(VARIABLE_NAME_EXPECTED_ERROR), parseIndex);
         }
 
         parseIndex = index + variableName.length();
@@ -249,10 +286,10 @@ public class ExpressionParser {
 
     private String parseParamDelimiter() throws ParseException {
         int index = nextNonBlank();
-        if (index < 0) throw new ParseException("parameter delimiter not found", parseIndex);
+        if (index < 0) throw new ParseException(errorMessage(PARAMETER_DELIMITER_EXPECTED_ERROR), parseIndex);
 
         if (expression.charAt(index) != ',') {
-            throw new ParseException("parameter delimiter not found", parseIndex);
+            throw new ParseException(errorMessage(PARAMETER_DELIMITER_EXPECTED_ERROR), parseIndex);
         }
 
         parseIndex = index + 1;
@@ -261,10 +298,10 @@ public class ExpressionParser {
 
     private String parseStringParameter() throws ParseException {
         int index = nextNonBlank();
-        if (index < 0) throw new ParseException("string parameter not found", parseIndex);
+        if (index < 0) throw new ParseException(STRING_PARAMETER_EXPECTED_ERROR, parseIndex);
 
         if (expression.charAt(index) != '"') {
-            throw new ParseException("string parameter delimiter not found", parseIndex);
+            throw new ParseException(STRING_PARAMETER_EXPECTED_ERROR, parseIndex);
         }
 
         int shift = 1;
@@ -312,7 +349,7 @@ public class ExpressionParser {
 
         }
 
-        if (!strReaded) throw new ParseException("string parameter not found", parseIndex);
+        if (!strReaded) throw new ParseException(STRING_PARAMETER_EXPECTED_ERROR, parseIndex);
 
         parseIndex = index + shift;
         return param.toString();
@@ -346,4 +383,11 @@ public class ExpressionParser {
         return character != null && (character.equals('\n') || character.equals(' '));
     }
 
+    private String errorMessage(String message, Object ... params) {
+        return MessageFormat.format(message, params);
+    }
+
+    private String functionNames() {
+        return functionNames;
+    }
 }

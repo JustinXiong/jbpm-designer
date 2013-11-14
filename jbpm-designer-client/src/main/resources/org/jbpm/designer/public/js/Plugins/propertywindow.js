@@ -4094,11 +4094,11 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
 
             function ajaxRequest(command, jsonParam, onsuccess, onfailure) {
                 Ext.Ajax.request({
-                    url: ORYX.PATH + 'expressioneditor',
+                    url: ORYX.PATH + 'customeditors',
                     method: 'POST',
                     params: {
-                        command: command,
-                        message: Ext.util.JSON.encode(jsonParam)
+                        expression_editor_command: command,
+                        expression_editor_message: Ext.util.JSON.encode(jsonParam)
                     },
                     success: function(response) {
                         onsuccess(response);

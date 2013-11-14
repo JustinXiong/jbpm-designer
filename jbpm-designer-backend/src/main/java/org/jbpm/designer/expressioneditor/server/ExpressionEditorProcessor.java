@@ -41,9 +41,9 @@ public class ExpressionEditorProcessor {
 
     private static final String GENERATE_COMMAND = "generateScript";
 
-    private static final String MESSAGE_PARAM = "message";
+    public static final String MESSAGE_PARAM = "expression_editor_message";
 
-    private static final String COMMAND_PARAM = "command";
+    public static final String COMMAND_PARAM = "expression_editor_command";
 
     public ExpressionEditorProcessor() {
     }

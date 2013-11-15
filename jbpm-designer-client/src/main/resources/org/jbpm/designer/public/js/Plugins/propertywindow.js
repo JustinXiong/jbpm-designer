@@ -3876,20 +3876,45 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                 items:[scriptEditor]
             });
 
+            function showParseError(errorMessage) {
+                var fullMessage = ORYX.I18N.ConditionExpressionEditorField.scriptParseError;
+                fullMessage = fullMessage.replace("{0}", errorMessage);
+                Ext.MessageBox.show({
+                    msg : fullMessage,
+                    icon: Ext.MessageBox.WARNING,
+                    buttons: {
+                        ok: ORYX.I18N.PropertyWindow.ok,
+                        cancel: ORYX.I18N.PropertyWindow.cancel
+                    },
+                    fn: function(btn){
+                        if(btn == "ok") {
+                            showSimpleEditor(true, true);
+                        } else {
+                            showScriptEditor(false, false);
+                        }
+                    }
+                });
+            }
+
+            function showScriptGenerationError(errorMessage) {
+                var fullMessage = ORYX.I18N.ConditionExpressionEditorField.scriptGenerationError;
+                fullMessage = fullMessage.replace("{0}", errorMessage);
+                Ext.MessageBox.show({
+                    msg : fullMessage,
+                    icon: Ext.MessageBox.WARNING,
+                    buttons: {
+                        ok: ORYX.I18N.PropertyWindow.ok
+                    }
+                });
+            }
+
             var onsuccessParseScript = function(response) {
                 if(response.responseText.length > 0) {
                     var responseJson = Ext.decode(response.responseText);
                     if (responseJson.errorMessage) {
                         if (!initScreen) {
-                            var errorMessage = ORYX.I18N.ConditionExpressionEditorField.scriptParseError;
-                            errorMessage = errorMessage.replace("{0}", responseJson.errorMessage);
-                            var changeTab = confirm(errorMessage);
-                            if (changeTab) {
-                                clearExpressionEditor();
-                                isSimpleEditor = true;
-                            } else {
-                                isSimpleEditor = false;
-                            }
+                            showParseError(responseJson.errorMessage);
+                            return;
                         } else {
                             isSimpleEditor = false;
                         }
@@ -3904,20 +3929,14 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                                 else params.push(parameter)
                             });
                         });
-                        varsCombo.setValue(variable);
                         var index = varsStore.find('value', variable);
                         if (index == -1) {
-                            var errorMessage = ORYX.I18N.ConditionExpressionEditorField.scriptParseError;
-                            errorMessage = errorMessage.replace("{0}", ORYX.I18N.ConditionExpressionEditorField.nonExistingVariable);
+                            var errorMessage = ORYX.I18N.ConditionExpressionEditorField.nonExistingVariable;
                             errorMessage = errorMessage.replace("{0}", variable);
-                            var changeTab = confirm(errorMessage);
-                            if (changeTab) {
-                                clearExpressionEditor();
-                                isSimpleEditor = true;
-                            } else {
-                                isSimpleEditor = false;
-                            }
+                            showParseError(errorMessage);
+                            return;
                         } else {
+                            varsCombo.setValue(variable);
                             var varRecord = varsStore.getAt(index);
                             varsCombo.fireEvent('select', varsCombo, varRecord);
 
@@ -3945,21 +3964,33 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                 }
                 initScreen = false;
                 if (isSimpleEditor) {
-                    dialog.setTitle(ORYX.I18N.ConditionExpressionEditorField.sequenceFlowTitle);
-                    contentPanel.setActiveTab(expressionEditorLayout);
+                    showSimpleEditor(true, false);
                 } else {
-                    contentPanel.setActiveTab(scriptEditorLayout);
-                    initCodeEditor()
+                    showScriptEditor(false, false);
                 }
             }
 
             var onfailureParseScript = function () {
-                sourceEditor.toTextArea();
-                sourceEditor = null;
+                showScriptEditor(false, false);
+            }
+
+            function showScriptEditor(state, resetSource, expression) {
+                if (sourceEditor) {
+                    sourceEditor.toTextArea();
+                    sourceEditor = null;
+                }
+                if (resetSource) scriptEditor.setValue(expression);
+                isSimpleEditor = state;
                 contentPanel.setActiveTab(scriptEditorLayout);
+                dialog.setTitle(ORYX.I18N.ConditionExpressionEditorField.sequenceFlowFullTitle);
                 initCodeEditor();
-                isSimpleEditor = false;
-                initScreen = false;
+            }
+
+            function showSimpleEditor(state, cleanEditor) {
+                if (cleanEditor) clearExpressionEditor();
+                isSimpleEditor = state;
+                contentPanel.setActiveTab(expressionEditorLayout);
+                dialog.setTitle(ORYX.I18N.ConditionExpressionEditorField.sequenceFlowTitle);
             }
 
             contentPanel = new Ext.TabPanel({
@@ -3973,44 +4004,34 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
                     'tabchange': function (tabpanel, tab) {
                         if (tab.title == ORYX.I18N.ConditionExpressionEditorField.scriptTab) {
                             if (isSimpleEditor) {
-                                var onsuccess = function(response) {
-                                    isSimpleEditor = true;
-                                    if(response.responseText.length > 0) {
-                                        var responseJson = Ext.decode(response.responseText);
-                                        if (responseJson.errorMessage) {
-                                            alert(responseJson.errorMessage);
-                                        } else {
-                                            if (sourceEditor) {
-                                                sourceEditor.toTextArea();
-                                                sourceEditor = null;
+                                if (varsCombo.getValue() == "" || (varsCombo.getValue() != "" && actionsCombo.getValue() == "")) {
+                                   showScriptEditor(false, true, '');
+                                } else {
+                                    var onsuccess = function(response) {
+                                        isSimpleEditor = true;
+                                        if(response.responseText.length > 0) {
+                                            var responseJson = Ext.decode(response.responseText);
+                                            if (responseJson.errorMessage) {
+                                                showScriptGenerationError(responseJson.errorMessage);
+                                                showSimpleEditor(true, false);
+                                            } else {
+                                                showScriptEditor(false, true, responseJson.script);
                                             }
-                                            scriptEditor.setValue(responseJson.script);
-                                            isSimpleEditor = false;
-                                            contentPanel.setActiveTab(scriptEditorLayout);
-                                            dialog.setTitle(ORYX.I18N.ConditionExpressionEditorField.sequenceFlowFullTitle);
-                                            initCodeEditor();
-                                            return;
                                         }
                                     }
-                                }
-                                var onfailure = function () {
-                                    isSimpleEditor = true;
-                                    contentPanel.setActiveTab(expressionEditorLayout);
-                                }
-                                var result = generateScript(onsuccess, onfailure);
-                                if (result == false) {
-                                    isSimpleEditor = true;
-                                    contentPanel.setActiveTab(expressionEditorLayout);
+                                    var onfailure = function () {
+                                        showSimpleEditor(true, false);
+                                    }
+                                    var result = generateScript(onsuccess, onfailure);
+                                    if (result == false) {
+                                        showSimpleEditor(true, false);
+                                    }
                                 }
                             }
                         } else {
                             if (!isSimpleEditor) {
                                 if (sourceEditor.getValue() == null || sourceEditor.getValue().trim() == "") {
-                                    varsCombo.clearValue();
-                                    actionsCombo.clearValue();
-                                    cleanCurrentInput();
-                                    isSimpleEditor = true;
-                                    dialog.setTitle(ORYX.I18N.ConditionExpressionEditorField.sequenceFlowTitle);
+                                    showSimpleEditor(true, true);
                                 } else {
                                     scriptEditor.setValue(sourceEditor.getValue());
                                     parseScript({script: sourceEditor.getValue()});
@@ -4115,17 +4136,18 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
             function generateScript(onsuccess, onfailure) {
                 var param = generateScriptParams();
                 if (!param) {
-                    alert(ORYX.I18N.ConditionExpressionEditorField.paramsError);
+                    showScriptGenerationError(ORYX.I18N.ConditionExpressionEditorField.paramsError);
                     return false;
                 }
                 ajaxRequest("generateScript", param, onsuccess, onfailure);
+                return true;
             }
 
             var onsuccessSave = function(response) {
                 if(response.responseText.length > 0) {
                     var responseJson = Ext.decode(response.responseText);
                     if (responseJson.errorMessage) {
-                        alert(responseJson.errorMessage);
+                        showScriptGenerationError(responseJson.errorMessage);
                     } else {
                         setFieldValueAndClose(responseJson.script)
                     }
@@ -4133,7 +4155,7 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
             }
 
             var onfailureSave = function() {
-                alert(ORYX.I18N.ConditionExpressionEditorField.saveError)
+                showScriptGenerationError(ORYX.I18N.ConditionExpressionEditorField.saveError)
             }
         }
 
@@ -4205,9 +4227,7 @@ Ext.form.ConditionExpressionEditorField = Ext.extend(Ext.form.TriggerField,  {
             if (this.getValue() != null && this.getValue() != "") {
                 parseScript({script:this.getValue()});
             } else {
-                isSimpleEditor = true;
-                dialog.setTitle(ORYX.I18N.ConditionExpressionEditorField.sequenceFlowTitle);
-                contentPanel.setActiveTab(expressionEditorLayout);
+                showSimpleEditor(true, false);
                 initScreen = false;
             }
         } else {

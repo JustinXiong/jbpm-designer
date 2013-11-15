@@ -427,9 +427,10 @@ ORYX.I18N.ConditionExpressionEditorField.isTrue = "is true";
 ORYX.I18N.ConditionExpressionEditorField.lessThan = "is less than";
 ORYX.I18N.ConditionExpressionEditorField.lessThanOrEqual = "is less than or equal to";
 ORYX.I18N.ConditionExpressionEditorField.startsWith = "starts with";
-ORYX.I18N.ConditionExpressionEditorField.paramsError = "Please fill correctly the form params.";
-ORYX.I18N.ConditionExpressionEditorField.saveError = "No se ha podido guardar la propiedad, por favor revise el valor configurado y pruebe otra vez";
-ORYX.I18N.ConditionExpressionEditorField.scriptParseError = "Error found parsing script: \n '{0}'\nPress OK to go to the Expression Editor screen and loose the current Script or Cancel to go back to the Script Editor.";
+ORYX.I18N.ConditionExpressionEditorField.paramsError = "Unable to generate Script expression, please fill correctly the form params.";
+ORYX.I18N.ConditionExpressionEditorField.saveError = "Unable to save property value, please check the value and try again.";
+ORYX.I18N.ConditionExpressionEditorField.scriptParseError = "Error found parsing script: <br/>{0}<br/><br/>Press OK to go to the Expression Editor screen and loose the current Script or Cancel to go back to the Script Editor.";
+ORYX.I18N.ConditionExpressionEditorField.scriptGenerationError = "Error found generating script: <br/>{0}<br/><br/>Please check the data entered on the Expression Editor.";
 ORYX.I18N.ConditionExpressionEditorField.nonExistingVariable = "The process does not contain any variable called '{0}'.";
 
 if(!ORYX.I18N.ShapeMenuPlugin) ORYX.I18N.ShapeMenuPlugin = {};

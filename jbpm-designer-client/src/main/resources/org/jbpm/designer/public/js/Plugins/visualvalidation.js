@@ -91,8 +91,6 @@ ORYX.Plugins.VisualValidation = ORYX.Plugins.AbstractPlugin.extend({
     viewAllValidation: function() {
         this.startValidate(false);
         this.displayErrorsOnNode();
-
-        this.disableValidation();
     },
 
     startValidate: function(updateshapes) {
